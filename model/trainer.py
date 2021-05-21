@@ -149,6 +149,9 @@ class Trainer():
 
     # New net forward pass
     outputs = self.net(batch)  
+    
+    print(f"output: {len(outputs)}")
+    print(f"labels: {len(labels)}")
 
     #loss = self.criterion(outputs, one_hot_labels) # BCE Loss with sigmoids over outputs
     loss = self.criterion(outputs, labels)
