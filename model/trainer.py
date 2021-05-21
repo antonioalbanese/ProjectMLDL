@@ -75,6 +75,16 @@ class Trainer():
 
     return (train_loss, train_accuracy,
             val_loss, val_accuracy)
+  
+  def to_onehot(self, targets): 
+      '''
+      Args:
+      targets : dataloader.dataset.targets of the new task images
+      '''
+      num_classes = self.net.fc.out_features
+      one_hot_targets = torch.eye(num_classes)[targets]
+
+      return one_hot_targets.to(self.device)
     
   def do_epoch(self, current_epoch):
     """Trains model for one epoch.
