@@ -151,12 +151,20 @@ class CIFAR100(VisionDataset):
       for i in range(0, 10):
         if train:
           t = []
-        for j in range(n, n+10):
-          var = self.__get_target_images__(j)
-          var = var[0 : len(self.__get_target_images__(j))]
-          t.extend(var)
-        n = n + 10
-        subset.append(t)
+          for j in range(n, n+10):
+            var = self.__get_target_images__(j)
+            var = var[0 : len(self.__get_target_images__(j))]
+            t.extend(var)
+          n = n + 10
+          subset.append(t)
+        else: 
+          for j in range(n, n+10):
+            var = self.__get_target_images__(j)
+            var = var[0 : len(self.__get_target_images__(j))]
+            t.extend(var)
+          n = n + 10
+          copied = copy(t)
+          subset.append(copied)
       return subset
 
 
