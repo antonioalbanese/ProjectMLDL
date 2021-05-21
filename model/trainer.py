@@ -24,7 +24,7 @@ class Trainer():
     """Update dataloaders.
 
     Args:
-        train_dl, validation_dl, test_dataloader: if not None,
+        train_dl, validation_dl, test_dl: if not None,
             update the respective dataloader.
     """
 
@@ -107,7 +107,7 @@ class Trainer():
 
     print(f"Epoch: {current_epoch}, LR: {self.scheduler.get_last_lr()}")
 
-    for images, labels in self.train_dataloader:
+    for images, labels in self.train_dl:
         loss, corrects = self.do_batch(images, labels)
 
         running_train_loss += loss.item()
@@ -172,7 +172,7 @@ class Trainer():
 
     Returns:
         val_loss: average loss function computed on the network outputs
-            of the validation set (val_dataloader).
+            of the validation set (validation_dl).
         val_accuracy: accuracy computed on the validation set.
     """
 
@@ -183,7 +183,7 @@ class Trainer():
     total = 0
     batch_idx = 0
 
-    for images, labels in self.val_dataloader:
+    for images, labels in self.validation_dl:
         images = images.to(self.device)
         labels = labels.to(self.device)
         total += labels.size(0)
@@ -228,7 +228,7 @@ class Trainer():
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
 
-    for images, labels in self.test_dataloader:
+    for images, labels in self.test_dl:
         images = images.to(self.device)
         labels = labels.to(self.device)
         total += labels.size(0)
