@@ -107,7 +107,7 @@ class Trainer():
 
     print(f"Epoch: {current_epoch}, LR: {self.scheduler.get_last_lr()}")
 
-    for images, labels in self.train_dl:
+    for _,images,labels in self.train_dl:
         loss, corrects = self.do_batch(images, labels)
 
         running_train_loss += loss.item()
