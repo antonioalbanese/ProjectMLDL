@@ -10,6 +10,7 @@ import pickle
 import random
 from sklearn.utils import shuffle
 from typing import Any, Callable, Optional, Tuple
+from copy import copy
 
 from torchvision.datasets import VisionDataset
 from data.utils import check_integrity, download_and_extract_archive
