@@ -145,13 +145,14 @@ class Trainer():
     self.optimizer.zero_grad() 
 
     # One hot encoding of new task labels 
-    one_hot_labels = self.to_onehot(labels) # Size = [128, 10]
+    #one_hot_labels = self.to_onehot(labels) # Size = [128, 10]
 
     # New net forward pass
     outputs = self.net(batch)  
 
-    loss = self.criterion(outputs, one_hot_labels) # BCE Loss with sigmoids over outputs
-
+    #loss = self.criterion(outputs, one_hot_labels) # BCE Loss with sigmoids over outputs
+    loss = self.criterion(outputs, labels)
+    
     # Get predictions
     _, preds = torch.max(outputs.data, 1)
 
@@ -183,16 +184,17 @@ class Trainer():
     total = 0
     batch_idx = 0
 
-    for images, labels in self.validation_dl:
+    for _, images, labels in self.validation_dl:
         images = images.to(self.device)
         labels = labels.to(self.device)
         total += labels.size(0)
 
         # One hot encoding of new task labels 
-        one_hot_labels = self.to_onehot(labels) # Size = [128, 10]
+        #one_hot_labels = self.to_onehot(labels) # Size = [128, 10]
         # New net forward pass
         outputs = self.net(images)  
-        loss = self.criterion(outputs, one_hot_labels) # BCE Loss with sigmoids over outputs
+        #loss = self.criterion(outputs, one_hot_labels) # BCE Loss with sigmoids over outputs
+        loss = self.criterion(outputs, labels)
 
         running_val_loss += loss.item()
 
@@ -228,7 +230,7 @@ class Trainer():
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
 
-    for images, labels in self.test_dl:
+    for _, images, labels in self.test_dl:
         images = images.to(self.device)
         labels = labels.to(self.device)
         total += labels.size(0)
