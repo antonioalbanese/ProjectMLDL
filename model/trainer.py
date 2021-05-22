@@ -164,22 +164,22 @@ class Trainer():
 
     return accuracy, all_targets, all_preds
 
-def increment_classes(self, n=10):
-  """Add n classes in the final fully connected layer."""
+  def increment_classes(self, n=10):
+    """Add n classes in the final fully connected layer."""
 
-  in_features = self.net.fc.in_features  # size of each input sample
-  out_features = self.net.fc.out_features  # size of each output sample
-  weight = self.net.fc.weight.data
+    in_features = self.net.fc.in_features  # size of each input sample
+    out_features = self.net.fc.out_features  # size of each output sample
+    weight = self.net.fc.weight.data
 
-  self.net.fc = nn.Linear(in_features, out_features+n)
-  self.net.fc.weight.data[:out_features] = weight
+    self.net.fc = nn.Linear(in_features, out_features+n)
+    self.net.fc.weight.data[:out_features] = weight
 
-def to_onehot(self, targets): 
-  '''
-  Args:
-  targets : dataloader.dataset.targets of the new task images
-  '''
-  num_classes = self.net.fc.out_features
-  one_hot_targets = torch.eye(num_classes)[targets]
+  def to_onehot(self, targets): 
+    '''
+    Args:
+    targets : dataloader.dataset.targets of the new task images
+    '''
+    num_classes = self.net.fc.out_features
+    one_hot_targets = torch.eye(num_classes)[targets]
 
-  return one_hot_targets.to(device)
+    return one_hot_targets.to(device)
