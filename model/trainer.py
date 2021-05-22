@@ -136,9 +136,9 @@ class Trainer():
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
     # solito ciclo
-    for _, images, labels in test_dl:
-        images = images.to(device)
-        labels = labels.to(device)
+    for _, images, labels in self.test_dl[classes_group_idx]:
+        images = images.to(self.DEVICE)
+        labels = labels.to(self.DEVICE)
         total += labels.size(0)
 
         # Forward Pass
