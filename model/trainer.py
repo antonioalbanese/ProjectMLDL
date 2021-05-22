@@ -182,4 +182,4 @@ class Trainer():
     num_classes = self.net.fc.out_features
     one_hot_targets = torch.eye(num_classes)[targets]
 
-    return one_hot_targets.to(device)
+    return one_hot_targets.to(self.DEVICE)
