@@ -17,7 +17,7 @@ class Trainer():
     self.scheduler = scheduler
 
     self.train_dl = train_dl
-    self.val_dl = validation_dl
+    self.validation_dl = validation_dl
     self.test_dl = test_dl
 
     
