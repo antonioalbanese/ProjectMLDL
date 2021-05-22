@@ -74,8 +74,8 @@ class Trainer():
     for _,images, labels in self.train_dl[classes_group_idx]:
       self.optimizer.zero_grad()
 
-      images = images.to(DEVICE)
-      labels = labels.to(DEVICE)
+      images = images.to(self.DEVICE)
+      labels = labels.to(self.DEVICE)
 
       one_hot_labels = self.to_onehot(labels) 
 
