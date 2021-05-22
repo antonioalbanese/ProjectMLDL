@@ -121,48 +121,48 @@ class Trainer():
     return val_loss, val_accuracy
 
   def test(self, classes_group_idx):
-  """Test the model.
-  Returns:
-      accuracy (float): accuracy of the model on the test set
-  """
+    """Test the model.
+    Returns:
+        accuracy (float): accuracy of the model on the test set
+    """
 
-  self.best_net.train(False)  # Set Network to evaluation mode
+    self.best_net.train(False)  # Set Network to evaluation mode
 
-  running_corrects = 0
-  total = 0
+    running_corrects = 0
+    total = 0
 
-  all_preds = torch.tensor([]) # to store all predictions
-  all_preds = all_preds.type(torch.LongTensor)
-  all_targets = torch.tensor([])
-  all_targets = all_targets.type(torch.LongTensor)
-  # solito ciclo
-  for _, images, labels in test_dl:
-      images = images.to(device)
-      labels = labels.to(device)
-      total += labels.size(0)
+    all_preds = torch.tensor([]) # to store all predictions
+    all_preds = all_preds.type(torch.LongTensor)
+    all_targets = torch.tensor([])
+    all_targets = all_targets.type(torch.LongTensor)
+    # solito ciclo
+    for _, images, labels in test_dl:
+        images = images.to(device)
+        labels = labels.to(device)
+        total += labels.size(0)
 
-      # Forward Pass
-      outputs = self.best_net(images)
+        # Forward Pass
+        outputs = self.best_net(images)
 
-      # Get predictions
-      _, preds = torch.max(outputs.data, 1)
+        # Get predictions
+        _, preds = torch.max(outputs.data, 1)
 
-      # Update Corrects
-      running_corrects += torch.sum(preds == labels.data).data.item()
+        # Update Corrects
+        running_corrects += torch.sum(preds == labels.data).data.item()
 
-      # Append batch predictions and labels
-      all_targets = torch.cat(
-          (all_targets.to(device), labels.to(device)), dim=0
-      )
-      all_preds = torch.cat(
-          (all_preds.to(device), preds.to(device)), dim=0
-      )
+        # Append batch predictions and labels
+        all_targets = torch.cat(
+            (all_targets.to(device), labels.to(device)), dim=0
+        )
+        all_preds = torch.cat(
+            (all_preds.to(device), preds.to(device)), dim=0
+        )
 
-  # Calculate accuracy
-  accuracy = running_corrects / float(total)  
+    # Calculate accuracy
+    accuracy = running_corrects / float(total)  
 
 
-  return accuracy, all_targets, all_preds
+    return accuracy, all_targets, all_preds
 
 def increment_classes(self, n=10):
   """Add n classes in the final fully connected layer."""
