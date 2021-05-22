@@ -59,7 +59,7 @@ class Trainer():
       test_acc_list[g] = test_accuracy
 
       if g < 9:
-        self.increment_classes(net)
+        self.increment_classes()
 
     return epoch_losses, test_acc_list, true_targets, predictions
 
