@@ -7,7 +7,7 @@ from copy import copy
 class Trainer():
   def __init__(self, device, net, criterion, optimizer, scheduler, train_dl, validation_dl, test_dl):
 
-    self.device = device
+    self.DEVICE = device
 
     self.net = net
     self.best = self.net
