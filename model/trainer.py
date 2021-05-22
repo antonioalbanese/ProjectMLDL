@@ -33,10 +33,10 @@ class Trainer():
 
       # ad ogni epoca chiamo il train, salvo le loss e trovo il modello migliore con l'evaluation
       for epoch in range(num_epochs):
-        e_loss = train_epoch(g)
+        e_loss = self.train_epoch(g)
         epoch_losses[g][epoch]=e_loss
         print(f"Epoch[{epoch}] loss: {e_loss} LR: {self.scheduler.get_last_lr()}")
-        validate_loss, validate_acc = validate(g)
+        validate_loss, validate_acc = self.validate(g)
         print(f"Validation on group[{g}] of 10 classes")
         print(f"val loss: {validate_loss}")
         print(f"val acc: {validate_acc}")
@@ -51,7 +51,7 @@ class Trainer():
       print(f"Group[{g}]Finished!")
       print(f"Best model at epoch {best_epoch}, best accuracy: {best_acc:.2f}")
       print("")
-      test_accuracy, true_targets, predictions = test(g)
+      test_accuracy, true_targets, predictions = self.test(g)
       print(f"Testing classes seen so far, accuracy: {test_accuracy}")
       print("")
       print("=============================================")
@@ -59,7 +59,7 @@ class Trainer():
       test_acc_list[g] = test_accuracy
 
       if g < 9:
-        increment_classes(net)
+        self.increment_classes(net)
 
     return epoch_losses, test_acc_list, true_targets, predictions
 
@@ -77,7 +77,7 @@ class Trainer():
       images = images.to(DEVICE)
       labels = labels.to(DEVICE)
 
-      one_hot_labels = to_onehot(labels) 
+      one_hot_labels = self.to_onehot(labels) 
 
       output = self.net(images)
       loss = self.criterion(output, one_hot_labels)
@@ -86,7 +86,7 @@ class Trainer():
 
       running_loss += loss.item()
     else:
-      epoch_loss = running_loss/len(train_dl[classes_group_idx])
+      epoch_loss = running_loss/len(self.train_dl[classes_group_idx])
       
     return epoch_loss
   
@@ -96,14 +96,14 @@ class Trainer():
     running_corrects = 0
     total = 0
     # come train(), ma prendo anche le predictions per fare qualche statistica
-    for _, images, labels in validation_dl[classes_group_idx]:
+    for _, images, labels in self.validation_dl[classes_group_idx]:
       total += labels.size(0)
-      optimizer.zero_grad()
+      self.optimizer.zero_grad()
 
-      images = images.to(DEVICE)
-      labels = labels.to(DEVICE)
+      images = images.to(self.DEVICE)
+      labels = labels.to(self.DEVICE)
 
-      one_hot_labels = to_onehot(labels) 
+      one_hot_labels = self.to_onehot(labels) 
 
       output = self.net(images)
       loss = self.criterion(output, one_hot_labels)
@@ -112,7 +112,7 @@ class Trainer():
       _, preds = torch.max(output.data, 1)
       running_corrects += torch.sum(preds == labels.data).data.item()
     else:
-      val_loss = running_loss/len(validation_dl)
+      val_loss = running_loss/len(self.validation_dl[classes_group_idx])
 
 
     val_accuracy = running_corrects / float(total)
