@@ -152,10 +152,10 @@ class Trainer():
 
         # Append batch predictions and labels
         all_targets = torch.cat(
-            (all_targets.to(device), labels.to(device)), dim=0
+            (all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0
         )
         all_preds = torch.cat(
-            (all_preds.to(device), preds.to(device)), dim=0
+            (all_preds.to(self.DEVICE), preds.to(self.DEVICE)), dim=0
         )
 
     # Calculate accuracy
