@@ -25,6 +25,7 @@ class Trainer():
   def train_model(self, num_epochs):
     miles = self.scheduler.milestones
     gam = self.scheduler.gamma
+    print(miles,gam)
     self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=miles, gamma=gam)
     cudnn.benchmark
     epoch_losses = [[float for k in range(num_epochs)] for j in range(10)]
