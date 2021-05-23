@@ -10,7 +10,7 @@ import torch.optim as optim
 #(self, device, net, param_opt, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, val_dl, test_dl)
 #(self, device, net, criterion, optimizer, scheduler, train_dl, validation_dl, test_dl):
 class Trainer():
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, val_dl, test_dl):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl):
 
     self.DEVICE = device
     self.MILESTONES = MILESTONES
