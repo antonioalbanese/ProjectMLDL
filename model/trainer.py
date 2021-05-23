@@ -39,7 +39,11 @@ class Trainer():
     test_acc_list = [float for k in range(10)]
     for g in range(10):
       self.net.to(self.DEVICE)
+      #inizialize LR and STEP
+      self.parameters_to_optimize = self.net.parameters()
+      self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
       self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.MILESTONES, gamma=self.GAMMA)
+      
       best_acc = 0
       self.best_net = deepcopy(self.net)
 
