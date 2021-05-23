@@ -3,6 +3,7 @@ import torch.nn as nn
 from torch.backends import cudnn
 from copy import deepcopy
 from copy import copy
+import torch.optim as optim
 
 class Trainer():
   def __init__(self, device, net, criterion, optimizer, scheduler, train_dl, validation_dl, test_dl):
@@ -22,6 +23,9 @@ class Trainer():
 
     
   def train_model(self, num_epochs):
+    miles = self.scheduler.milestones
+    gam = self.scheduler.gamma
+    self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=miles, gamma=gam)
     cudnn.benchmark
     epoch_losses = [[float for k in range(num_epochs)] for j in range(10)]
     test_acc_list = [float for k in range(10)]
