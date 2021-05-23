@@ -20,7 +20,7 @@ class Trainer():
     self.GAMMA = GAMMA
 
     self.net = net
-    self.best = self.net
+    self.best_net = self.net
     
     self.criterion = nn.BCEWithLogitsLoss()
     self.parameters_to_optimize = self.net.parameters()
