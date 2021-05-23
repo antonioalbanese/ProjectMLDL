@@ -70,7 +70,9 @@ class Trainer():
 
   def train_epoch(self, classes_group_idx):
     self.net.train()
-
+    miles = self.scheduler.milestones
+    gam = self.scheduler.gamma
+    print(miles,gam)
     running_loss = 0
     # per ogni gruppo di classi in train mi prendo le labels e le immagini
     # azzero i gradienti, mi sposto sulla gpu e faccio onehot delle labels
