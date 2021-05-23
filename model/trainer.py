@@ -1,21 +1,32 @@
 import torch
 import torch.nn as nn
+import torch.nn.init as init
+import torch.optim as optim
+import torch.nn as nn
 from torch.backends import cudnn
 from copy import deepcopy
 from copy import copy
 import torch.optim as optim
-
+#(self, device, net, param_opt, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, val_dl, test_dl)
+#(self, device, net, criterion, optimizer, scheduler, train_dl, validation_dl, test_dl):
 class Trainer():
-  def __init__(self, device, net, criterion, optimizer, scheduler, train_dl, validation_dl, test_dl):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, val_dl, test_dl):
 
     self.DEVICE = device
+    self.MILESTONES = MILESTONES
+    self.MOMENTUM = MOMENTUM
+    self.START_LR = LR
+    self.WEIGHT_DECAY = WEIGHT_DECAY
+    self.GAMMA = GAMMA
 
     self.net = net
     self.best = self.net
-
-    self.criterion = criterion
-    self.optimizer = optimizer
-    self.scheduler = scheduler
+    
+    self.criterion = nn.BCEWithLogitsLoss()
+    self.parameters_to_optimize = self.net.parameters()
+    self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
+    
+    self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.MILESTONES, gamma=self.GAMMA)
 
     self.train_dl = train_dl
     self.validation_dl = validation_dl
@@ -23,16 +34,12 @@ class Trainer():
 
     
   def train_model(self, num_epochs):
-    miles = self.scheduler.milestones
-    gam = self.scheduler.gamma
-    print(miles,gam)
-    self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=miles, gamma=gam)
     cudnn.benchmark
     epoch_losses = [[float for k in range(num_epochs)] for j in range(10)]
     test_acc_list = [float for k in range(10)]
     for g in range(10):
       self.net.to(self.DEVICE)
-
+      self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.MILESTONES, gamma=self.GAMMA)
       best_acc = 0
       self.best_net = deepcopy(self.net)
 
@@ -70,9 +77,6 @@ class Trainer():
 
   def train_epoch(self, classes_group_idx):
     self.net.train()
-    miles = self.scheduler.milestones
-    gam = self.scheduler.gamma
-    print(miles,gam)
     running_loss = 0
     # per ogni gruppo di classi in train mi prendo le labels e le immagini
     # azzero i gradienti, mi sposto sulla gpu e faccio onehot delle labels
