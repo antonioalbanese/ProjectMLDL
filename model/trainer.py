@@ -143,6 +143,7 @@ class Trainer():
       #one_hot_labels = self.to_onehot(labels) 
 
       output = self.net(images)
+      print(output)
       loss = self.criterion(output, one_hot_labels)
 
       running_loss += loss.item()
