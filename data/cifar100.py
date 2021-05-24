@@ -67,7 +67,7 @@ class CIFAR100(VisionDataset):
         self.targets = []
         
         #random seed here is useless
-        #random.seed(42)
+        random.seed(42)
         
         #defining support list to shuffle incremental indexes
         self.shuffle_base = shuffle(list(range(100)))
