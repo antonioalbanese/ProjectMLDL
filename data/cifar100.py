@@ -70,7 +70,7 @@ class CIFAR100(VisionDataset):
         #random.seed(42)
         
         #defining support list to shuffle incremental indexes
-        self.shuffle_base = suffle(list(range(100)))
+        self.shuffle_base = shuffle(list(range(100)))
 
         # now load the picked numpy arrays
         for file_name, checksum in downloaded_list:
