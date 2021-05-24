@@ -140,7 +140,7 @@ class Trainer():
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
 
-      one_hot_labels = self.to_onehot(labels) 
+      #one_hot_labels = self.to_onehot(labels) 
 
       output = self.net(images)
       loss = self.criterion(output, one_hot_labels)
