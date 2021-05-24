@@ -1,4 +1,3 @@
-import matplotlib as plt
 import os
 
 import torch
@@ -17,8 +16,8 @@ from PIL import Image
 import numpy as np
 import matplotlib 
 import matplotlib.pyplot as plt
+import seaborn as sns
 from sklearn.metrics import confusion_matrix
-
 
 def check_cifar100_dataloader(dl): #dl: list[run_i][group_10]
   coarse_label = [
@@ -129,3 +128,56 @@ def check_cifar100_dataloader(dl): #dl: list[run_i][group_10]
   plt.imshow(np.transpose(images[1][10]))
 
   print(coarse_label[images[2][10].item()])
+
+def plot_confusion_matrix(targets,
+                          predictions, 
+                          RANDOM_SEED, 
+                          title, 
+                          cmap = 'viridis',
+                          save_directory = None):
+  cm = confusion_matrix(targets, predictions)
+  fig, ax = plt.subplots(figsize = (5, 5), dpi = 100)
+	sns.heatmap(cm, cmap, ax=ax)
+  plt.ylabel('True class')
+	plt.xlabel('Predicted class')
+	plt.title("{} - seed: {}".format(title, RANDOM_SEED))
+  if save_directory != None:
+    fig.savefig(save_directory)
+  plt.show()
+  
+def plot_test_accuracies(stats, save_directory = None):
+  mean = np.array(stats)[:, 0]
+  std = np.array(stats)[:, 1]
+  fig, ax = plt.subplots(figsize = (10, 5), dpi = 100)
+  x = np.arange(10, 101, 10)
+  ax.errorbar(x, mean, std)
+  ax.set_title("Test accuracy")
+  ax.set_xlabel("Number of classes")
+  ax.set_ylabel("Accuracy")
+  plt.tight_layout()
+  ax.legend()
+  if save_directory != None:
+    fig.savefig(save_directory)
+  plt.show()
+  
+def plot_train_val(train_stats, val_stats, loss = bool, save_directory = None):
+  train_mean = np.array(train_stats)[:, 0]
+  train_std = np.array(train_stats)[:, 1]
+  val_mean = np.array(val_stats)[:, 0]
+  val_std = np.array(val_stats)[:, 1]
+  fig, ax = plt.subplots(figsize = (10, 5), dpi = 100)
+  x = np.arange(10, 101, 10)
+  ax.errorbar(x, train_mean, train_std, label = 'Training')
+  ax.errorbar(x, val_mean, val_std, label = 'Validation')
+  if loss:
+    ax.set_title("Training and validation loss")
+    ax.set_ylabel("Loss")
+  else:
+    ax.set_title("Training and validation accuracy")
+    ax.set_ylabel("Accuracy")
+  ax.set_xlabel("Number of classes")
+  plt.tight_layout()
+  ax.legend()
+  if save_directory != None:
+    fig.savefig(save_directory)
+  plt.show()
