@@ -66,7 +66,11 @@ class CIFAR100(VisionDataset):
         self.data: Any = []
         self.targets = []
         
-        random.seed(42)
+        #random seed here is useless
+        #random.seed(42)
+        
+        #defining support list to shuffle incremental indexes
+        self.shuffle_base = suffle(list(range(100)))
 
         # now load the picked numpy arrays
         for file_name, checksum in downloaded_list:
@@ -153,15 +157,15 @@ class CIFAR100(VisionDataset):
         if train:
           t = []
           for j in range(n, n+10):
-            var = self.__get_target_images__(j)
-            var = var[0 : len(self.__get_target_images__(j))]
+            var = self.__get_target_images__(self.shuffle_base[j])
+            var = var[0 : len(self.__get_target_images__(self.shuffle_base[j]))]
             t.extend(var)
           n = n + 10
           subset.append(t)
         else: 
           for j in range(n, n+10):
-            var = self.__get_target_images__(j)
-            var = var[0 : len(self.__get_target_images__(j))]
+            var = self.__get_target_images__(self.shuffle_base[j])
+            var = var[0 : len(self.__get_target_images__(self.shuffle_base[j]))]
             t.extend(var)
           n = n + 10
           copied = copy(t)
