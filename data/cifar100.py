@@ -150,6 +150,10 @@ class CIFAR100(VisionDataset):
       return images
     
     def __incremental_indexes__(self, train: bool):
+      if train:
+        print("train")
+      else:
+        print("test")
       subset = []
       t = []
       n = 0
