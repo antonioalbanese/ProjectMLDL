@@ -129,7 +129,7 @@ def check_cifar100_dataloader(dl): #dl: list[run_i][group_10]
 
   print(coarse_label[images[2][10].item()])
 
-def plot_confusion_matrix(targets, predictions, RANDOM_SEED, title, cmap = 'viridis', save_directory = None):
+def plot_confusion_matrix(targets, predictions, RANDOM_SEED, title, cmap = 'terrain', save_directory = None):
   cm = confusion_matrix(targets, predictions)
   fig, ax = plt.subplots(figsize = (5, 5), dpi = 100)
   sns.heatmap(cm, cmap, ax=ax)
