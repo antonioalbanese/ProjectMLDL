@@ -71,7 +71,7 @@ class Trainer():
         
       print(f"Group {g_print} Finished!")
       be_print = best_epoch + 1
-      print(f"Best accuracy at epoch {be_print}: {best_acc:.2f}")
+      print(f"Best accuracy found at epoch {be_print}: {best_acc:.2f}")
       test_accuracy, true_targets, predictions = self.test(g)
       print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
       print("")
