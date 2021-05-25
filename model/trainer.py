@@ -43,9 +43,10 @@ class Trainer():
              'true_labels': [int],
              'val_accuracies': [float for j in range(10)],
              'val_losses': [float for j in range(10)]}
+    
     for g in range(10):
       self.net.to(self.DEVICE)
-      #inizialize LR and STEP
+      
       self.parameters_to_optimize = self.net.parameters()
       self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
       self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.MILESTONES, gamma=self.GAMMA)
@@ -53,14 +54,14 @@ class Trainer():
       best_acc = 0
       self.best_net = deepcopy(self.net)
 
-      # ad ogni epoca chiamo il train, salvo le loss e trovo il modello migliore con l'evaluation
       for epoch in range(num_epochs):
         e_loss, e_acc = self.train_epoch(g)
         print(f"Epoch[{epoch}] loss: {e_loss} LR: {self.scheduler.get_last_lr()}")
         
         validate_loss, validate_acc = self.validate(g)
-        print(f"Validation on group[{g}] of 10 classes")
-        print(f"val loss: {validate_loss}")
+        g_print = g + 1
+        print(f"Validation on group[{g_print}] of 10 classes")
+        # print(f"val loss: {validate_loss}") # non mi interessa granché
         print(f"val acc: {validate_acc}")
         self.scheduler.step()
         
@@ -71,8 +72,7 @@ class Trainer():
           print("Best model updated")
         print("")
         
-
-      print(f"Group[{g}]Finished!")
+      print(f"Group[{g_print}]Finished!")
       print(f"Best model at epoch {best_epoch}, best accuracy: {best_acc:.2f}")
       print("")
       test_accuracy, true_targets, predictions = self.test(g)
@@ -87,7 +87,7 @@ class Trainer():
       logs['test_accuracies'][g] = test_accuracy
 
       if g < 9:
-        self.increment_classes()
+        self.add_output_nodes()
 
     logs['true_labels'] = true_targets
     logs['predictions'] = predictions
@@ -95,24 +95,18 @@ class Trainer():
 
   def train_epoch(self, classes_group_idx):
     self.net.train()
-
     running_loss = 0
     running_corrects = 0
     total = 0
-    # per ogni gruppo di classi in train mi prendo le labels e le immagini
-    # azzero i gradienti, mi sposto sulla gpu e faccio onehot delle labels
-    # calcolo output, loss, etc.
-    # alla fine di tutti i batches aggiorno la epoch_loss
+
     for _, images, labels in self.train_dl[classes_group_idx]:
       self.optimizer.zero_grad()
 
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
 
-      one_hot_labels = self.to_onehot(labels) 
-
-      output = self.net(images)
-      
+      one_hot_labels = self.onehot_encoding(labels) 
+      output = self.net(images)    
       loss = self.criterion(output, one_hot_labels)
 
       running_loss += loss.item()
@@ -122,6 +116,7 @@ class Trainer():
       
       loss.backward()
       self.optimizer.step()
+      
     else:
       epoch_loss = running_loss/len(self.train_dl[classes_group_idx])
       epoch_acc = running_corrects/float(total)
@@ -133,7 +128,7 @@ class Trainer():
     running_loss = 0
     running_corrects = 0
     total = 0
-    # come train(), ma prendo anche le predictions per fare qualche statistica
+
     for _, images, labels in self.validation_dl[classes_group_idx]:
       total += labels.size(0)
       self.optimizer.zero_grad()
@@ -141,82 +136,52 @@ class Trainer():
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
 
-      one_hot_labels = self.to_onehot(labels) 
-
-      output = self.net(images)
-      
+      one_hot_labels = self.onehot_encoding(labels) 
+      output = self.net(images)     
       loss = self.criterion(output, one_hot_labels)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
       running_corrects += torch.sum(preds == labels.data).data.item()
+      
     else:
       val_loss = running_loss/len(self.validation_dl[classes_group_idx])
       val_accuracy = running_corrects / float(total)
 
-
     return val_loss, val_accuracy
 
   def test(self, classes_group_idx):
-    """Test the model.
-    Returns:
-        accuracy (float): accuracy of the model on the test set
-    """
-
-    self.best_net.train(False)  # Set Network to evaluation mode
-
+    self.best_net.train(False)
     running_corrects = 0
     total = 0
 
-    all_preds = torch.tensor([]) # to store all predictions
+    all_preds = torch.tensor([])
     all_preds = all_preds.type(torch.LongTensor)
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
-    # solito ciclo
+    
     for _, images, labels in self.test_dl[classes_group_idx]:
-        images = images.to(self.DEVICE)
-        labels = labels.to(self.DEVICE)
-        total += labels.size(0)
+      images = images.to(self.DEVICE)
+      labels = labels.to(self.DEVICE)
+      total += labels.size(0)
 
-        # Forward Pass
-        outputs = self.best_net(images)
+      outputs = self.best_net(images)
+      
+      _, preds = torch.max(outputs.data, 1)
+      running_corrects += torch.sum(preds == labels.data).data.item()
 
-        # Get predictions
-        _, preds = torch.max(outputs.data, 1)
+      all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
+      all_preds = torch.cat((all_preds.to(self.DEVICE), preds.to(self.DEVICE)), dim=0)
 
-        # Update Corrects
-        running_corrects += torch.sum(preds == labels.data).data.item()
-
-        # Append batch predictions and labels
-        all_targets = torch.cat(
-            (all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0
-        )
-        all_preds = torch.cat(
-            (all_preds.to(self.DEVICE), preds.to(self.DEVICE)), dim=0
-        )
-
-    # Calculate accuracy
-    accuracy = running_corrects / float(total)  
-
+    else:
+      accuracy = running_corrects / float(total)  
 
     return accuracy, all_targets, all_preds
 
-  def increment_classes(self, n=10):
-    """Add n classes in the final fully connected layer."""
+  def add_output_nodes(self):
+    self.net.fc = nn.Linear(self.net.fc.in_features, self.net.fc.out_features + 10)
+    self.net.fc.weight.data[:self.net.fc.out_features] = self.net.fc.weight.data
 
-    in_features = self.net.fc.in_features  # size of each input sample
-    out_features = self.net.fc.out_features  # size of each output sample
-    weight = self.net.fc.weight.data
-
-    self.net.fc = nn.Linear(in_features, out_features+n)
-    self.net.fc.weight.data[:out_features] = weight
-
-  def to_onehot(self, targets): 
-    '''
-    Args:
-    targets : dataloader.dataset.targets of the new task images
-    '''
-    num_classes = self.net.fc.out_features
-    one_hot_targets = torch.eye(num_classes)[targets]
-
-    return one_hot_targets.to(self.DEVICE)
+  def onehot_encoding(self, labels):   
+    enc_labels = torch.eye(self.net.fc.out_features)[labels]
+    return enc_labels.to(self.DEVICE)
