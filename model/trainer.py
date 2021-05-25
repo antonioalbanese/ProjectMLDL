@@ -2,10 +2,8 @@ import torch
 import torch.nn as nn
 import torch.nn.init as init
 import torch.optim as optim
-import torch.nn as nn
 from torch.backends import cudnn
-from copy import deepcopy
-from copy import copy
+from copy import copy, deepcopy
 
 #(self, device, net, param_opt, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, val_dl, test_dl)
 #(self, device, net, criterion, optimizer, scheduler, train_dl, validation_dl, test_dl):
@@ -56,13 +54,12 @@ class Trainer():
 
       for epoch in range(num_epochs):
         e_loss, e_acc = self.train_epoch(g)
-        print(f"Epoch[{epoch}] loss: {e_loss} LR: {self.scheduler.get_last_lr()}")
+        e_print = epoch + 1
+        print(f"Epoch {e_print}/{num_epochs} LR: {self.scheduler.get_last_lr():.2f}")
         
         validate_loss, validate_acc = self.validate(g)
         g_print = g + 1
-        print(f"Validation on group[{g_print}] of 10 classes")
-        # print(f"val loss: {validate_loss}") # non mi interessa granché
-        print(f"val acc: {validate_acc}")
+        print(f"Validation accuracy on group {g_print}/10: {validate_acc:.2f}")
         self.scheduler.step()
         
         if validate_acc > best_acc:
@@ -72,11 +69,11 @@ class Trainer():
           print("Best model updated")
         print("")
         
-      print(f"Group[{g_print}]Finished!")
-      print(f"Best model at epoch {best_epoch}, best accuracy: {best_acc:.2f}")
-      print("")
+      print(f"Group {g_print} Finished!")
+      be_print = best_epoch + 1
+      print(f"Best accuracy at epoch {be_print}: {best_acc:.2f}")
       test_accuracy, true_targets, predictions = self.test(g)
-      print(f"Testing classes seen so far, accuracy: {test_accuracy}")
+      print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
       print("")
       print("=============================================")
       print("")
