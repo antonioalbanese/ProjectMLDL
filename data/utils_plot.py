@@ -150,7 +150,6 @@ def plot_test_accuracies(stats, save_directory = None):
   ax.set_xlabel("Number of classes")
   ax.set_ylabel("Accuracy")
   plt.tight_layout()
-  ax.legend()
   if save_directory != None:
     fig.savefig(save_directory)
   plt.show()
