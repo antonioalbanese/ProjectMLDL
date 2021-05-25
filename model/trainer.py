@@ -55,7 +55,7 @@ class Trainer():
       for epoch in range(num_epochs):
         e_loss, e_acc = self.train_epoch(g)
         e_print = epoch + 1
-        print(f"Epoch {e_print}/{num_epochs} LR: {self.scheduler.get_last_lr():.2f}")
+        print(f"Epoch {e_print}/{num_epochs} LR: {self.scheduler.get_last_lr()}")
         
         validate_loss, validate_acc = self.validate(g)
         g_print = g + 1
