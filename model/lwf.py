@@ -129,7 +129,7 @@ class LearningWithoutForgetting(Trainer):
     output = torch.stack([output[:, i] for i in all_classes], axis=1)
     
     # BCE Loss with sigmoids over outputs (over targets must be done manually)
-    loss = self.criterion(outputs, targets)
+    loss = self.criterion(output, targets)
     
     return loss
   ##############################################################################
