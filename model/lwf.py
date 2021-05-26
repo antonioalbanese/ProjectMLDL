@@ -91,7 +91,7 @@ class LearningWithoutForgetting(Trainer):
         output = self.net(images)    
         loss = self.criterion(output, one_hot_labels)
       else:
-        loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
@@ -131,7 +131,7 @@ class LearningWithoutForgetting(Trainer):
     # BCE Loss with sigmoids over outputs (over targets must be done manually)
     loss = self.criterion(output, targets)
     
-    return loss
+    return output, loss
   ##############################################################################
   
   def validate(self, classes_group_idx):
@@ -152,7 +152,7 @@ class LearningWithoutForgetting(Trainer):
         output = self.net(images)    
         loss = self.criterion(output, one_hot_labels)
       else:
-        loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
