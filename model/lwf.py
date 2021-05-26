@@ -110,7 +110,7 @@ class LearningWithoutForgetting(Trainer):
   ##############################################################################
   def lwf_loss(self, images, one_hot_labels, classes_group_idx):
     # One hot encoding of new task labels
-    num_classes = classes_group_idx * 10
+    num_classes = (classes_group_idx + 1) * 10
     new_classes = (np.arange(100)[range(num_classes - 10, num_classes)]).astype(np.int32)
     one_hot_labels = torch.stack([one_hot_labels[:, i] for i in new_classes], axis=1)
     
