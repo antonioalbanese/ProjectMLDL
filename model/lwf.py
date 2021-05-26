@@ -8,7 +8,7 @@ from model.trainer import Trainer
 
 class LearningWithoutForgetting(Trainer):
   
-    def train_model(self, num_epochs):
+  def train_model(self, num_epochs):
     cudnn.benchmark
     
     logs = {'group_train_loss': [float for j in range(10)],
