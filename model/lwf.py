@@ -115,7 +115,8 @@ class LearningWithoutForgetting(Trainer):
     one_hot_labels = torch.stack([one_hot_labels[:, i] for i in new_classes], axis=1)
     
     # Old net forward pass
-    old_outputs = nn.Sigmoid(self.old_net(images))
+    sigmoid = nn.Sigmoid()
+    old_outputs = sigmoid(self.old_net(images))
     old_classes = (np.arange(100)[range(num_classes - 10)]).astype(np.int32)
     old_outputs = torch.stack([old_outputs[:, i] for i in old_classes], axis=1)
     
