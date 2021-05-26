@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.init as init
 import torch.optim as optim
 from torch.backends import cudnn
+import numpy as np
 from copy import copy, deepcopy
 from model.trainer import Trainer
 
