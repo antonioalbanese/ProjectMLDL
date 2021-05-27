@@ -110,16 +110,10 @@ class LearningWithoutForgetting(Trainer):
   def lwf_loss(self, images, one_hot_labels, classes_group_idx):
     
     sigmoid = nn.Sigmoid()
-    old_outputs = sigmoid(self.old_net(images))
-    
-    one_hot_labels = torch.cat((old_outputs[:, 0 : classes_group_idx*10], one_hot_labels[:, classes_group_idx*10 : classes_group_idx*10+10]), 1)
-    
-    output = self.net(images)
-    print(output.shape)
-    all_classes = (np.arange(100)[range(classes_group_idx*10+10)]).astype(np.int32)
-    output = torch.stack([output[:, i] for i in all_classes], axis=1)
-    print(output.shape)
-    
+    old_outputs = sigmoid(self.old_net(images))    
+    one_hot_labels = torch.cat((old_outputs[:, 0:classes_group_idx*10], 
+                                one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)   
+    output = self.net(images)   
     loss = self.criterion(output, one_hot_labels)
     
     return output, loss
