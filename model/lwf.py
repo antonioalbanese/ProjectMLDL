@@ -159,7 +159,13 @@ class LearningWithoutForgetting(Trainer):
         output = self.net(images)    
         loss = self.criterion(output, one_hot_labels)
       else:
-        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+        #output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+        sigmoid = nn.Sigmoid()
+        old_out = sigmoid(self.old_net(images))
+        output = self.net(images)#[classes_group_idx*10:classes_group_idx*10+10]
+        one_hot = torch.cat((old_out[:, 0:classes_group_idx*10], one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)
+        
+        loss = self.criterion(output, one_hot)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
