@@ -91,14 +91,7 @@ class LearningWithoutForgetting(Trainer):
         output = self.net(images)    
         loss = self.criterion(output, one_hot_labels)
       else:
-        #output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
-        sigmoid = nn.Sigmoid()
-        old_out = sigmoid(self.old_net(images))
-        output = self.net(images)#[classes_group_idx*10:classes_group_idx*10+10]
-        one_hot = torch.cat((old_out[:, 0:classes_group_idx*10], one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)
-        
-        loss = self.criterion(output, one_hot)
-        
+        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
@@ -114,32 +107,22 @@ class LearningWithoutForgetting(Trainer):
       
     return epoch_loss, epoch_acc
 
-  ##############################################################################
   def lwf_loss(self, images, one_hot_labels, classes_group_idx):
-    # One hot encoding of new task labels
-    num_classes = (classes_group_idx + 1) * 10
-    new_classes = (np.arange(100)[range(num_classes - 10, num_classes)]).astype(np.int32)
-    one_hot_labels = torch.stack([one_hot_labels[:, i] for i in new_classes], axis=1)
     
-    # Old net forward pass
     sigmoid = nn.Sigmoid()
     old_outputs = sigmoid(self.old_net(images))
-    old_classes = (np.arange(100)[range(num_classes - 10)]).astype(np.int32)
-    old_outputs = torch.stack([old_outputs[:, i] for i in old_classes], axis=1)
     
-    # Combine new and old class targets
-    targets = torch.cat((old_outputs, one_hot_labels), 1)
+    one_hot_labels = torch.cat((old_out[:, 0 : classes_group_idx*10], one_hot_labels[:, classes_group_idx*10 : classes_group_idx*10+10]), 1)
     
-    # New net forward pass
     output = self.net(images)
+    print(output.size)
     all_classes = (np.arange(100)[range(num_classes)]).astype(np.int32)
     output = torch.stack([output[:, i] for i in all_classes], axis=1)
+    print(output.size)
     
-    # BCE Loss with sigmoids over outputs (over targets must be done manually)
-    loss = self.criterion(output, targets)
+    loss = self.criterion(output, one_hot_labels)
     
     return output, loss
-  ##############################################################################
   
   def validate(self, classes_group_idx):
     self.net.eval()
@@ -159,13 +142,7 @@ class LearningWithoutForgetting(Trainer):
         output = self.net(images)    
         loss = self.criterion(output, one_hot_labels)
       else:
-        #output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
-        sigmoid = nn.Sigmoid()
-        old_out = sigmoid(self.old_net(images))
-        output = self.net(images)#[classes_group_idx*10:classes_group_idx*10+10]
-        one_hot = torch.cat((old_out[:, 0:classes_group_idx*10], one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)
-        
-        loss = self.criterion(output, one_hot)
+        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
