@@ -94,7 +94,8 @@ class LearningWithoutForgetting(Trainer):
         #output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
         old_out = self.old_net(images)
         output = self.net(images)#[classes_group_idx*10:classes_group_idx*10+10]
-        one_hot =  old_out + one_hot_labels[classes_group_idx*10:classes_group_idx*10+10]
+        one_hot = torch.cat((old_out, one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)
+        
         loss = self.criterion(output, one_hot)
         
 
