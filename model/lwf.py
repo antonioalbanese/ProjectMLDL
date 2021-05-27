@@ -86,7 +86,6 @@ class LearningWithoutForgetting(Trainer):
       labels = labels.to(self.DEVICE)
 
       one_hot_labels = self.onehot_encoding(labels) 
-      print("one_hot_labels:", one_hot_labels.shape)
       
       if classes_group_idx == 0:
         output = self.net(images)    
@@ -97,7 +96,6 @@ class LearningWithoutForgetting(Trainer):
         old_out = sigmoid(self.old_net(images))
         output = self.net(images)#[classes_group_idx*10:classes_group_idx*10+10]
         one_hot = torch.cat((old_out[:, 0:classes_group_idx*10], one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)
-        print("one_hot:", one_hot.shape)
         
         loss = self.criterion(output, one_hot)
         
