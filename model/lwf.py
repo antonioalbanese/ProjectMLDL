@@ -91,7 +91,12 @@ class LearningWithoutForgetting(Trainer):
         output = self.net(images)    
         loss = self.criterion(output, one_hot_labels)
       else:
-        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+        #output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+        old_out = self.old_net(images)
+        output = self.net(images)#[classes_group_idx*10:classes_group_idx*10+10]
+        one_hot =  old_out + one_hot_labels[classes_group_idx*10:classes_group_idx*10+10]
+        loss = self.criterion(output, one_hot)
+        
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
