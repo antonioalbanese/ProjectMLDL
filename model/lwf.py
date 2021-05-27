@@ -112,7 +112,7 @@ class LearningWithoutForgetting(Trainer):
     sigmoid = nn.Sigmoid()
     old_outputs = sigmoid(self.old_net(images))
     
-    one_hot_labels = torch.cat((old_out[:, 0 : classes_group_idx*10], one_hot_labels[:, classes_group_idx*10 : classes_group_idx*10+10]), 1)
+    one_hot_labels = torch.cat((old_outputs[:, 0 : classes_group_idx*10], one_hot_labels[:, classes_group_idx*10 : classes_group_idx*10+10]), 1)
     
     output = self.net(images)
     print(output.size)
