@@ -108,6 +108,7 @@ class LearningWithoutForgetting(Trainer):
     return epoch_loss, epoch_acc
 
   def lwf_loss(self, images, one_hot_labels, classes_group_idx):
+    self.old_net.to(self.DEVICE)
     self.old_net.eval()
     
     sigmoid = nn.Sigmoid()
