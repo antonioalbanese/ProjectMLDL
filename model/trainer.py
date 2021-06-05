@@ -21,7 +21,7 @@ class Trainer():
     self.net = net
     self.best_net = self.net
 
-    self.criterion = nn.BCEWithLogitsLoss()
+    self.criterion = nn.BCEWithLogitsLoss().to(DEVICE)
     self.parameters_to_optimize = self.net.parameters()
     self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
     
