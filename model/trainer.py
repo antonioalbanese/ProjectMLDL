@@ -176,7 +176,7 @@ class Trainer():
     return accuracy, all_targets, all_preds
 
   def add_output_nodes(self):
-    self.net.fc = nn.Linear(self.net.fc.in_features, self.net.fc.out_features + 10)
+    self.net.fc = nn.Linear(self.net.fc.in_features, self.net.fc.out_features + 10, bias=False)
     self.net.fc.weight.data[:self.net.fc.out_features] = self.net.fc.weight.data
 
   def onehot_encoding(self, labels):   
