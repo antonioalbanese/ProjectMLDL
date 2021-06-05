@@ -8,9 +8,9 @@ from copy import copy, deepcopy
 #(self, device, net, param_opt, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, val_dl, test_dl)
 #(self, device, net, criterion, optimizer, scheduler, train_dl, validation_dl, test_dl):
 
-class Trainer():
+class Trainer(torch.nn.Module):
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl):
-
+    super().__init__()
     self.DEVICE = device
     self.MILESTONES = MILESTONES
     self.MOMENTUM = MOMENTUM
