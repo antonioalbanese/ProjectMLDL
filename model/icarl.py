@@ -34,9 +34,9 @@ class iCaRL(LearningWithoutForgetting):
     self.validation_set = validation_set
     self.test_set = test_set
     
-    self.train_dl = None
-    self.validation_dl = None
-    self.test_dl = None
+    self.train_dl = [[] for i in range(10)]
+    self.validation_dl = [[] for i in range(10)]
+    self.test_dl = [[] for i in range(10)]
     
     self.old_net = None
     self.train_transform = train_transform
@@ -57,9 +57,17 @@ class iCaRL(LearningWithoutForgetting):
              'val_losses': [float for j in range(10)]}
     
     for g in range(10):
+      self.net.to(self.DEVICE)
+      
+      self.parameters_to_optimize = self.net.parameters()
+      self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
+      self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.MILESTONES, gamma=self.GAMMA)
       
       best_acc = 0
       self.best_net = deepcopy(self.net)
+      
+      # augment train_set with exemplars and define DataLoaders for the current group
+      self.update_representation(g, self.train_set[g], self.validation_set[g])
 
       for epoch in range(num_epochs):
         e_loss, e_acc = self.train_epoch(g)
@@ -81,6 +89,10 @@ class iCaRL(LearningWithoutForgetting):
       print(f"Group {g_print} Finished!")
       be_print = best_epoch + 1
       print(f"Best accuracy found at epoch {be_print}: {best_acc:.2f}")
+      
+      m = self.reduce_exemplar_set()
+      self.construct_exemplar_set(self.train_set[g], m)
+      
       test_accuracy, true_targets, predictions = self.test(g)
       print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
       print("")
@@ -177,14 +189,37 @@ class iCaRL(LearningWithoutForgetting):
 
     return val_loss, val_accuracy
   
-  def __UpdateRepresentation(self, train_set, validation_set):
-    print(f"Length of exemplars set: {sum([len(self.exemplar_set[y]) for y in range(len(self.exemplar_set))])}")
-    augmented_train_set = self.__DataAugmentation(train_set)
-    #augmented_val_set = self.__DataAugmentation(validation_set)
+  def update_representation(self, classes_group_idx, train_set, validation_set):
+    print(f"Length of exemplars set: {sum([len(self.exemplar_set[i]) for i in range(len(self.exemplar_set))])}")
+    exemplars = Exemplar(self.exemplar_set, self.train_transform)
+    ex_train_set = ConcatDataset([exemplars, train_set])
     
+    tmp_dl = DataLoader(ex_train_set,
+                        batch_size=self.BATCH_SIZE,
+                        shuffle=True, 
+                        num_workers=4,
+                        drop_last=True)
+    train_dl[classes_group_idx] = copy(tmp_dl)
     
+    tmp_dl = DataLoader(validation_set,
+                        batch_size=self.BATCH_SIZE,
+                        shuffle=True, 
+                        num_workers=4,
+                        drop_last=True)
+    validation_dl[classes_group_idx] = copy(tmp_dl)
     
-  def __DataAugmentation(self, dataset):
-      exemplars = Exemplar(self.exemplar_set, self.train_transform)
-      augmented_dataset = ConcatDataset([exemplars, dataset])                                   
+  def reduce_exemplar_set(self):
+    m = floor(self.memory_size / self.net.fc.out_features)      
+    print(f"Target number of exemplars: {m}")
+
+    # from the current exemplar set, keep only first m
+    for i in range(len(self.exemplar_set)):
+      current_exemplar_set = self.exemplar_set[i]
+      self.exemplar_set[i] = current_exemplar_set[:m]
     
+    return m
+  
+  def construct_exemplar_set(self, train_set, m):
+    
+    self.exemplar_set.extend(new_exemplar_set)
+      
