@@ -11,34 +11,15 @@ from data.exemplar import Exemplar
 
 class iCaRL(LearningWithoutForgetting):
   
-  def __init__(self, device, net, BATCH_SIZE, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_set, validation_set, test_set, train_transform, test_transform):
-    super().__init__()
-    self.DEVICE = device
-    self.MILESTONES = MILESTONES
-    self.MOMENTUM = MOMENTUM
-    self.START_LR = LR
-    self.WEIGHT_DECAY = WEIGHT_DECAY
-    self.GAMMA = GAMMA
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_set, validation_set, test_set, train_transform, test_transform):
+    super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl)
+   
     self.BATCH_SIZE = BATCH_SIZE
-
-    self.net = net
-    self.best_net = self.net
-
-    self.criterion = nn.BCEWithLogitsLoss().to(self.DEVICE)
-    self.parameters_to_optimize = self.net.parameters()
-    self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
-    
-    self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.MILESTONES, gamma=self.GAMMA)
 
     self.train_set = train_set
     self.validation_set = validation_set
     self.test_set = test_set
     
-    self.train_dl = [[] for i in range(10)]
-    self.validation_dl = [[] for i in range(10)]
-    self.test_dl = [[] for i in range(10)]
-    
-    self.old_net = None
     self.train_transform = train_transform
     self.test_transform = test_transform
     self.memory_size = 2000
@@ -188,6 +169,34 @@ class iCaRL(LearningWithoutForgetting):
       val_accuracy = running_corrects / float(total)
 
     return val_loss, val_accuracy
+  
+  def test(self, classes_group_idx):
+    self.best_net.train(False)
+    running_corrects = 0
+    total = 0
+
+    all_preds = torch.tensor([])
+    all_preds = all_preds.type(torch.LongTensor)
+    all_targets = torch.tensor([])
+    all_targets = all_targets.type(torch.LongTensor)
+    
+    for _, images, labels in self.test_dl[classes_group_idx]:
+      images = images.to(self.DEVICE)
+      labels = labels.to(self.DEVICE)
+      total += labels.size(0)
+
+      outputs = self.best_net(images)
+      
+      _, preds = torch.max(outputs.data, 1)
+      running_corrects += torch.sum(preds == labels.data).data.item()
+
+      all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
+      all_preds = torch.cat((all_preds.to(self.DEVICE), preds.to(self.DEVICE)), dim=0)
+
+    else:
+      accuracy = running_corrects / float(total)  
+
+    return accuracy, all_targets, all_preds
   
   def update_representation(self, classes_group_idx, train_set, validation_set):
     print(f"Length of exemplars set: {sum([len(self.exemplar_set[i]) for i in range(len(self.exemplar_set))])}")
