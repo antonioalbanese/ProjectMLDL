@@ -105,6 +105,15 @@ class ResNet(nn.Module):
         x = self.fc(x)
         return x
     
+    def features(self, x):
+        x = self.relu(self.bn1(self.conv1(x)))
+        x = self.layer1(x)
+        x = self.layer2(x)
+        x = self.layer3(x)
+        x = self.avgpool(x)
+        x = x.view(x.size(0), -1)
+        return x
+    
     #(custom - 18-05-21)add output nodes
     def addOutputNodes(self, num_new_outputs):
         in_features = self.fc.in_features
