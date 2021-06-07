@@ -1,5 +1,6 @@
 from PIL import Image
 from torch.utils.data import Dataset
+from torchvision import transforms
 from typing import Any, Callable, Optional, Tuple
 
 class Exemplar(Dataset):
@@ -25,8 +26,9 @@ class Exemplar(Dataset):
     #img = Image.fromarray(img) # Return a PIL image
 
     if self.transform is not None:
-        img = self.transform(img)
-
+      img = transforms.functional.to_pil_image(img)
+      img = self.transform(img)
+        
     return index, img, target
   
   def __len__(self) -> int:
