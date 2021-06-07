@@ -189,6 +189,3 @@ class CIFAR100(VisionDataset):
         data_s, targets_s = shuffle(data, targets)
         self.data = data_s
         self.targets = targets_s
-
-    def set_transform_status(self, flag: bool):
-        self.transform_status = flag
