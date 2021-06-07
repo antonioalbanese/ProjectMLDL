@@ -21,6 +21,8 @@ class Exemplar(Dataset):
         tuple: (image, target) where target is index of the target class.
     """
     img, target = self.data[index], self.targets[index]
+    
+    img = Image.fromarray(img) # Return a PIL image
 
     if self.transform is not None:
         img = self.transform(img)
