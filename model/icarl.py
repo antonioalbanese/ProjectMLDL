@@ -11,21 +11,22 @@ from data.exemplar import Exemplar
 
 class iCaRL(LearningWithoutForgetting):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_set, validation_set, test_set, train_transform, test_transform):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_set, train_transform, test_transform):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl)
    
     self.BATCH_SIZE = BATCH_SIZE
 
     self.train_set = train_set
-    self.validation_set = validation_set
-    self.test_set = test_set
+    # self.validation_set = validation_set
+    # self.test_set = test_set
     
     self.train_transform = train_transform
     self.test_transform = test_transform
     self.memory_size = 2000
     self.exemplar_set = []
+    self.means = None
   
-  def train_model(self, num_epochs):
+  def train_model(self, num_epochs, herding: bool, classify: bool):
     
     cudnn.benchmark
     
@@ -48,7 +49,7 @@ class iCaRL(LearningWithoutForgetting):
       self.best_net = deepcopy(self.net)
       
       # augment train_set with exemplars and define DataLoaders for the current group
-      self.update_representation(g, self.train_set[g], self.validation_set[g])
+      self.update_representation(g, self.train_set[g])
 
       for epoch in range(num_epochs):
         e_loss, e_acc = self.train_epoch(g)
@@ -72,9 +73,12 @@ class iCaRL(LearningWithoutForgetting):
       print(f"Best accuracy found at epoch {be_print}: {best_acc:.2f}")
       
       m = self.reduce_exemplar_set()
-      self.construct_exemplar_set(self.train_set[g], m)
+      self.construct_exemplar_set(self.train_set[g], m, herding)
       
-      test_accuracy, true_targets, predictions = self.test(g)
+      if classify is True:
+        test_accuracy, true_targets, predictions = self.test_classify(g, self.train_set[g])
+      else:
+        test_accuracy, true_targets, predictions = self.test(g)
       print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
       print("")
       print("=============================================")
@@ -93,84 +97,9 @@ class iCaRL(LearningWithoutForgetting):
     logs['predictions'] = predictions
     return logs
 
-  def train_epoch(self, classes_group_idx):
-    self.net.train()
-    running_loss = 0
-    running_corrects = 0
-    total = 0
-
-    for _, images, labels in self.train_dl[classes_group_idx]:
-      self.optimizer.zero_grad()
-
-      images = images.to(self.DEVICE)
-      labels = labels.to(self.DEVICE)
-
-      one_hot_labels = self.onehot_encoding(labels) 
-      
-      if classes_group_idx == 0:
-        output = self.net(images)    
-        loss = self.criterion(output, one_hot_labels)
-      else:
-        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
-
-      running_loss += loss.item()
-      _, preds = torch.max(output.data, 1)
-      running_corrects += torch.sum(preds == labels.data).data.item()
-      total += labels.size(0)
-      
-      loss.backward()
-      self.optimizer.step()
-      
-    else:
-      epoch_loss = running_loss/len(self.train_dl[classes_group_idx])
-      epoch_acc = running_corrects/float(total)
-      
-    return epoch_loss, epoch_acc
-
-  def lwf_loss(self, images, one_hot_labels, classes_group_idx):
-    self.old_net.to(self.DEVICE)
-    self.old_net.eval()
-    
-    sigmoid = nn.Sigmoid()
-    old_outputs = sigmoid(self.old_net(images))    
-    one_hot_labels = torch.cat((old_outputs[:, 0:classes_group_idx*10], 
-                                one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)   
-    output = self.net(images)   
-    loss = self.criterion(output, one_hot_labels)
-    
-    return output, loss
+########################################################################################################################
   
-  def validate(self, classes_group_idx):
-    self.net.eval()
-    running_loss = 0
-    running_corrects = 0
-    total = 0
-
-    for _, images, labels in self.validation_dl[classes_group_idx]:
-      total += labels.size(0)
-      self.optimizer.zero_grad()
-
-      images = images.to(self.DEVICE)
-      labels = labels.to(self.DEVICE)
-
-      one_hot_labels = self.onehot_encoding(labels) 
-      if classes_group_idx == 0:
-        output = self.net(images)    
-        loss = self.criterion(output, one_hot_labels)
-      else:
-        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
-
-      running_loss += loss.item()
-      _, preds = torch.max(output.data, 1)
-      running_corrects += torch.sum(preds == labels.data).data.item()
-      
-    else:
-      val_loss = running_loss/len(self.validation_dl[classes_group_idx])
-      val_accuracy = running_corrects / float(total)
-
-    return val_loss, val_accuracy
-  
-  def test(self, classes_group_idx):
+  def test_classify(self, classes_group_idx, train_set):
     self.best_net.train(False)
     running_corrects = 0
     total = 0
@@ -180,14 +109,17 @@ class iCaRL(LearningWithoutForgetting):
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
     
+    self.means = None
+    train_set.set_transform_status(False)
+    
     for _, images, labels in self.test_dl[classes_group_idx]:
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
       total += labels.size(0)
 
-      outputs = self.best_net(images)
+      with torch.no_grad():
+        preds = self.classify(images, train_set)
       
-      _, preds = torch.max(outputs.data, 1)
       running_corrects += torch.sum(preds == labels.data).data.item()
 
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
@@ -198,7 +130,7 @@ class iCaRL(LearningWithoutForgetting):
 
     return accuracy, all_targets, all_preds
   
-  def update_representation(self, classes_group_idx, train_set, validation_set):
+  def update_representation(self, classes_group_idx, train_set):
     print(f"Length of exemplars set: {sum([len(self.exemplar_set[i]) for i in range(len(self.exemplar_set))])}")
     exemplars = Exemplar(self.exemplar_set, self.train_transform)
     ex_train_set = ConcatDataset([exemplars, train_set])
@@ -208,14 +140,14 @@ class iCaRL(LearningWithoutForgetting):
                         shuffle=True, 
                         num_workers=4,
                         drop_last=True)
-    train_dl[classes_group_idx] = copy(tmp_dl)
+    self.train_dl[classes_group_idx] = copy(tmp_dl)
     
-    tmp_dl = DataLoader(validation_set,
-                        batch_size=self.BATCH_SIZE,
-                        shuffle=True, 
-                        num_workers=4,
-                        drop_last=True)
-    validation_dl[classes_group_idx] = copy(tmp_dl)
+    #tmp_dl = DataLoader(validation_set,
+    #                    batch_size=self.BATCH_SIZE,
+    #                    shuffle=True, 
+    #                    num_workers=4,
+    #                    drop_last=True)
+    #self.validation_dl[classes_group_idx] = copy(tmp_dl)
     
   def reduce_exemplar_set(self):
     m = floor(self.memory_size / self.net.fc.out_features)      
@@ -228,7 +160,90 @@ class iCaRL(LearningWithoutForgetting):
     
     return m
   
-  def construct_exemplar_set(self, train_set, m):
+  def construct_exemplar_set(self, train_set, m, herding: bool):   
+    train_set.set_transform_status(False)    
+    samples = [[] for i in range(10)]
+    new_exemplar_set = [[] for i in range(10)]
+    for _, images, labels in train_set:
+      labels = labels % 10
+      samples[labels].append(images)
+    train_set.set_transform_status(True)
+    
+    if herding is True:
+      new_exemplar_set = self.prioritized_selection(samples, new_exemplar_set, m)
+    else:
+      new_exemplar_set = self.random_selection(samples, new_exemplar_set, m)
     
     self.exemplar_set.extend(new_exemplar_set)
+      
+  def prioritized_selection(self, samples, exemplars, m):
+    for i in range(10):
+      print(f"Randomly extracting exemplars from class {i} of current split... ", end="")
+      exemplars[i] = random.sample(samples[i], m) # delete this and implement algorithm 4 from iCaRL paper
+      print(f"Extracted {len(exemplars[i])} exemplars.")
+    return exemplars
+  
+  def random_selection(self, samples, exemplars, m):
+    for i in range(10):
+      print(f"Randomly extracting exemplars from class {i} of current split... ", end="")
+      exemplars[i] = random.sample(samples[i], m)
+      print(f"Extracted {len(exemplars[i])} exemplars.")
+    return exemplars
+
+  def classify(self, images, train_set):
+    feature_map = self.features_extractor(images)
+    for i in range(feature_map.size(0)):
+      feature_map[i] = feature_map[i] / feature_map[i].norm()
+    feature_map.to(self.DEVICE)
+
+    if self.means is None:
+      self.mean_of_exemplars(train_set)
+
+    class_labels = []
+    for i in range(feature_map.size(0)):
+      nearest_prototype = torch.argmin(torch.norm(feature_map[i]-self.means, dim=1))
+      class_labels.append(nearest_prototype)
+    
+    return torch.stack(class_labels)
+
+  def features_extractor(self, images, batch=True, transform=None):
+    pass
+  
+  def mean_of_exemplars(self, train_set):
+    print("Computing mean of exemplars... ", end="")
+    self.means = []
+    train_features = [[] for i in range(10)]
+    for _, img, labels in train_set:
+      f = self.features_extractor(img, False, self.test_transform)
+      f = f / f.norm()
+      train_features[labels % 10].append(f)
+
+    num_classes = len(self.exemplar_set)
+    for i in range(num_classes):
+      if i >= (num_classes-10):
+        f_list = train_features[i % 10]
+      else:
+        f_list = []
+
+      for img in self.exemplar_set[i]:
+        f = self.features_extractor(img, False, self.test_transform)
+        f = f / f.norm()
+        f_list.append(f)
+
+      f_list = torch.stack(f_list)
+      class_means = f_list.mean(dim=0)
+      class_means = class_means/class_means.norm()
+
+      self.means.append(class_means)
+
+    self.means = torch.stack(self.means).to(self.DEVICE)
+    print("done")
+      
+      
+      
+      
+      
+      
+      
+      
       
