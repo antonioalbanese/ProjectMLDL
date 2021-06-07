@@ -7,7 +7,7 @@ class Exemplar(Dataset):
   def __init__(self, exemplar_set, transform=None):
     self.data = []
     self.targets = []
-    self.trasform = transform
+    self.transform = transform
     
     for index, exemplar_i in enumerate(exemplar_set):
       self.data += exemplar_i
