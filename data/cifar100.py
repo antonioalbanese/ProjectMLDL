@@ -50,6 +50,7 @@ class CIFAR100(VisionDataset):
                                       target_transform=target_transform)
 
         self.train = train  # training set or test set
+        self.transform_status = True
 
         if download:
             self.download()
@@ -109,10 +110,10 @@ class CIFAR100(VisionDataset):
         # to return a PIL Image
         img = Image.fromarray(img)
 
-        if self.transform is not None:
+        if (self.transform is not None) and (self.transform_status is True):
             img = self.transform(img)
 
-        if self.target_transform is not None:
+        if (self.target_transform is not None) and (self.transform_status is True):
             target = self.target_transform(target)
 
         return index, img, target
@@ -169,9 +170,7 @@ class CIFAR100(VisionDataset):
           copied = copy(t)
           subset.append(copied)
       return subset
-
-
-    
+ 
     def __shuffle__(self):
       indexes = list(range(0, 100))
       random.shuffle(indexes)
@@ -181,10 +180,7 @@ class CIFAR100(VisionDataset):
       for i in range(0, len(ix)):
         for j in ix[i]:
           self.targets[j] = indexes[i]
-    
-    
-    
-    
+   
     def __shuffle_seed__(self, random_seed):
         random.seed(random_seed)
         data = self.data
@@ -193,3 +189,6 @@ class CIFAR100(VisionDataset):
         data_s, targets_s = shuffle(data, targets)
         self.data = data_s
         self.targets = targets_s
+
+    def set_transform_status(self, flag: bool):
+        self.transform_status = flag
