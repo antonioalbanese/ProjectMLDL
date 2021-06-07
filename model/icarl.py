@@ -194,7 +194,7 @@ class iCaRL(LearningWithoutForgetting):
     feature_map = self.features_extractor(images)
     for i in range(feature_map.size(0)):
       feature_map[i] = feature_map[i] / feature_map[i].norm()
-    feature_map.to(self.DEVICE)
+    feature_map = feature_map.to(self.DEVICE)
 
     if self.means is None:
       self.mean_of_exemplars(train_set)
@@ -207,7 +207,15 @@ class iCaRL(LearningWithoutForgetting):
     return torch.stack(class_labels)
 
   def features_extractor(self, images, batch=True, transform=None):
-    pass
+    assert not (batch is False and transform is None), "if a PIL image is passed to extract_features, a transform must be defined"
+    if batch is False:
+      images = transform(images)
+      images = images.unsqueeze(0)
+    images = images.to(self.DEVICE)
+    features = self.best_net.features(images)
+    if batch is False: 
+      features = features[0]
+    return features
   
   def mean_of_exemplars(self, train_set):
     print("Computing mean of exemplars... ", end="")
@@ -238,12 +246,3 @@ class iCaRL(LearningWithoutForgetting):
 
     self.means = torch.stack(self.means).to(self.DEVICE)
     print("done")
-      
-      
-      
-      
-      
-      
-      
-      
-      
