@@ -11,8 +11,8 @@ class Exemplar(Dataset):
     self.transform = transform
     
     for index, exemplar_i in enumerate(exemplar_set):
-      self.data += exemplar_i
-      self.targets += [index]*len(exemplar_i)
+      self.data.extend(exemplar_i)
+      self.targets.extend([index]*len(exemplar_i))
 
   def __getitem__(self, index: int) -> Tuple[Any, Any]:
     """
