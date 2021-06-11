@@ -14,7 +14,7 @@ class iCaRL(LearningWithoutForgetting):
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl)
     self.BATCH_SIZE = BATCH_SIZE
-    self.VALIDATE = False
+    self.VALIDATE = True
 
     self.train_set = train_subset
     
