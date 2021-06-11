@@ -234,7 +234,7 @@ class iCaRL(LearningWithoutForgetting):
 
     num_classes = len(self.exemplar_set)
     for i in range(num_classes):
-      if (train_dataset is not None) and (i in range(num_classes-10, num_classes)):
+      if (train_set is not None) and (i in range(num_classes-10, num_classes)):
         f_list = train_features[i % 10]
       else:
         f_list = []
