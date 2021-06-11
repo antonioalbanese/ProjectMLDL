@@ -5,6 +5,7 @@ import torch.optim as optim
 from torch.backends import cudnn
 from torch.utils.data import DataLoader, ConcatDataset
 import numpy as np
+from math import floor
 from copy import copy, deepcopy
 from model.lwf import LearningWithoutForgetting
 from data.exemplar import Exemplar
