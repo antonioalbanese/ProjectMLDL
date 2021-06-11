@@ -194,7 +194,7 @@ class iCaRL(LearningWithoutForgetting):
     feature_map = feature_map.to(self.DEVICE)
 
     if self.means is None:
-      self.means = self.mean_of_exemplars(train_set)
+      self.mean_of_exemplars(train_set)
 
     class_labels = []
     for i in range(feature_map.size(0)):
@@ -250,4 +250,3 @@ class iCaRL(LearningWithoutForgetting):
 
     self.means = torch.stack(self.means).to(self.DEVICE)
     print("done")
-    retun self.means
