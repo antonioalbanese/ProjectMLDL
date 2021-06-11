@@ -26,7 +26,6 @@ class Exemplar(Dataset):
     #img = Image.fromarray(img) # Return a PIL image
 
     if self.transform is not None:
-      img = transforms.functional.to_pil_image(img)
       img = self.transform(img)
         
     return index, img, target
