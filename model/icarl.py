@@ -9,6 +9,7 @@ from math import floor
 from copy import copy, deepcopy
 from model.lwf import LearningWithoutForgetting
 from data.exemplar import Exemplar
+import random
 
 class iCaRL(LearningWithoutForgetting):
   
