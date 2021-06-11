@@ -12,14 +12,7 @@ from torchvision import datasets
 
 class CIFAR100(torch.utils.data.Dataset):
     
-    def __init__(
-            self,
-            root: str,
-            train: bool = True,
-            transform: Optional[Callable] = None,
-            download: bool = False,
-            random_state: int
-    ) -> None:
+    def __init__(self, root, train, download, random_state, transform=None):
         self.train = train
         self.transform = transform
         self.transform_status = True
