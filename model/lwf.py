@@ -75,6 +75,8 @@ class LearningWithoutForgetting(Trainer):
 
   def train_epoch(self, classes_group_idx):
     self.net.train()
+    if self.old_net is not None: self.old_net.train(False)
+    if self.best_net is not None: self.best_net.train(False)
     running_loss = 0
     running_corrects = 0
     total = 0
@@ -85,13 +87,14 @@ class LearningWithoutForgetting(Trainer):
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
 
-      one_hot_labels = self.onehot_encoding(labels) 
+      num_classes = self.net.fc.out_features
+      one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
       
-      if classes_group_idx == 0:
+      if self.old_net is None:
         output = self.net(images)    
         loss = self.criterion(output, one_hot_labels)
       else:
-        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+        output, loss = self.distill_loss(images, one_hot_labels, num_classes)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
@@ -107,14 +110,12 @@ class LearningWithoutForgetting(Trainer):
       
     return epoch_loss, epoch_acc
 
-  def lwf_loss(self, images, one_hot_labels, classes_group_idx):
+  def distill_loss(self, images, one_hot_labels, num_classes):
     self.old_net.to(self.DEVICE)
-    self.old_net.eval()
     
     sigmoid = nn.Sigmoid()
-    old_outputs = sigmoid(self.old_net(images))    
-    one_hot_labels = torch.cat((old_outputs[:, 0:classes_group_idx*10], 
-                                one_hot_labels[:, classes_group_idx*10:classes_group_idx*10+10]), 1)   
+    old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]  
+    one_hot_labels = torch.cat((old_net_outputs, one_hot_labels), dim=1)   
     output = self.net(images)   
     loss = self.criterion(output, one_hot_labels)
     
@@ -134,11 +135,11 @@ class LearningWithoutForgetting(Trainer):
       labels = labels.to(self.DEVICE)
 
       one_hot_labels = self.onehot_encoding(labels) 
-      if classes_group_idx == 0:
-        output = self.net(images)    
-        loss = self.criterion(output, one_hot_labels)
-      else:
-        output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+      #if classes_group_idx == 0:
+      output = self.net(images)    
+      loss = self.criterion(output, one_hot_labels)
+      #else:
+        #output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
