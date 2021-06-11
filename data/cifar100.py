@@ -34,7 +34,7 @@ class CIFAR100(torch.utils.data.Dataset):
             tuple: (image, target) where target is index of the target class.
         """
         true_index = self.index_map[index]
-        img, target = self.data[true_index], self.targets[true_index]
+        img, target = self.dataset.data[true_index], self.dataset.targets[true_index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
