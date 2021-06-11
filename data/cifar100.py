@@ -18,7 +18,11 @@ class CIFAR100(torch.utils.data.Dataset):
         self.transform = transform
         self.transform_status = True
         
-        self.dataset = datasets.cifar.CIFAR100(root, train, download, transform)
+        self.dataset = datasets.cifar.CIFAR100(
+            root=root,
+            train=train,
+            download=download,
+            transform=None)
         self.targets = np.array(self.dataset.targets)
         self.splits = self.make_class_splits(random_state)
 
