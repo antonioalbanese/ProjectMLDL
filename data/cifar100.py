@@ -6,6 +6,7 @@ from PIL import Image
 import numpy as np
 from typing import Any, Callable, Optional, Tuple
 from copy import copy
+import torch
 from torchvision import transforms
 from torchvision import datasets
 
