@@ -59,7 +59,7 @@ class CIFAR100(torch.utils.data.Dataset):
     def make_class_splits(self, random_state: int):
         dict_splits = dict.fromkeys(np.arange(0, 10))
         rand_targets = list(range(0,  100))
-        rand_targets = self.shuffle_list(rand_targets)
+        rand_targets = self.shuffle_list(random_state, rand_targets)
         
         for g in range(10):
             dict_splits[g] = rand_targets[g*10 : (g+1)*10]
@@ -77,7 +77,7 @@ class CIFAR100(torch.utils.data.Dataset):
     def train_val_split(self, val_size: float, random_state: int):
         l = len(self.index_map)
         split = int(np.floor(val_size*l))
-        index_list = self.shuffle_list(list(range(l)))
+        index_list = self.shuffle_list(random_state, list(range(l)))
         return index_list[split:], index_list[:split]
     
     def set_exemplars(self, index_list):
