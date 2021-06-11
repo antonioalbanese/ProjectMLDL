@@ -11,14 +11,12 @@ from data.exemplar import Exemplar
 
 class iCaRL(LearningWithoutForgetting):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_set, train_transform, test_transform):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl)
-   
     self.BATCH_SIZE = BATCH_SIZE
+    self.VALIDATE = False
 
-    self.train_set = train_set
-    # self.validation_set = validation_set
-    # self.test_set = test_set
+    self.train_set = train_subset
     
     self.train_transform = train_transform
     self.test_transform = test_transform
@@ -40,6 +38,7 @@ class iCaRL(LearningWithoutForgetting):
     
     for g in range(10):
       self.net.to(self.DEVICE)
+      if self.old_net is not None: self.old_net = self.old_net.to(self.DEVICE)
       
       self.parameters_to_optimize = self.net.parameters()
       self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
@@ -49,7 +48,7 @@ class iCaRL(LearningWithoutForgetting):
       self.best_net = deepcopy(self.net)
       
       # augment train_set with exemplars and define DataLoaders for the current group
-      self.update_representation(g, self.train_set[g])
+      self.update_representation(g)
 
       for epoch in range(num_epochs):
         e_loss, e_acc = self.train_epoch(g)
@@ -61,7 +60,7 @@ class iCaRL(LearningWithoutForgetting):
         print(f"Validation accuracy on group {g_print}/10: {validate_acc:.2f}")
         self.scheduler.step()
         
-        if validate_acc > best_acc:
+        if self.VALIDATE and validate_acc > best_acc:
           best_acc = validate_acc
           self.best_net = deepcopy(self.net)
           best_epoch = epoch
@@ -101,6 +100,8 @@ class iCaRL(LearningWithoutForgetting):
   
   def test_classify(self, classes_group_idx, train_set):
     self.best_net.train(False)
+    if self.best_net is not None: self.best_net.train(False)
+    if self.old_net is not None: self.old_net.train(False)
     running_corrects = 0
     total = 0
 
@@ -110,7 +111,7 @@ class iCaRL(LearningWithoutForgetting):
     all_targets = all_targets.type(torch.LongTensor)
     
     self.means = None
-    train_set.set_transform_status(False)
+    if train_set is not None: train_set.dataset.set_transform_status(False)
     
     for _, images, labels in self.test_dl[classes_group_idx]:
       images = images.to(self.DEVICE)
@@ -126,14 +127,15 @@ class iCaRL(LearningWithoutForgetting):
       all_preds = torch.cat((all_preds.to(self.DEVICE), preds.to(self.DEVICE)), dim=0)
 
     else:
+      if train_set is not None: train_set.dataset.set_transform_status(True)
       accuracy = running_corrects / float(total)  
 
     return accuracy, all_targets, all_preds
   
-  def update_representation(self, classes_group_idx, train_set):
+  def update_representation(self, classes_group_idx):
     print(f"Length of exemplars set: {sum([len(self.exemplar_set[i]) for i in range(len(self.exemplar_set))])}")
     exemplars = Exemplar(self.exemplar_set, self.train_transform)
-    ex_train_set = ConcatDataset([exemplars, train_set])
+    ex_train_set = ConcatDataset([exemplars, self.train_set[classes_group_idx]])
     
     tmp_dl = DataLoader(ex_train_set,
                         batch_size=self.BATCH_SIZE,
@@ -141,13 +143,6 @@ class iCaRL(LearningWithoutForgetting):
                         num_workers=4,
                         drop_last=True)
     self.train_dl[classes_group_idx] = copy(tmp_dl)
-    
-    #tmp_dl = DataLoader(validation_set,
-    #                    batch_size=self.BATCH_SIZE,
-    #                    shuffle=True, 
-    #                    num_workers=4,
-    #                    drop_last=True)
-    #self.validation_dl[classes_group_idx] = copy(tmp_dl)
     
   def reduce_exemplar_set(self):
     m = floor(self.memory_size / self.net.fc.out_features)      
@@ -161,13 +156,13 @@ class iCaRL(LearningWithoutForgetting):
     return m
   
   def construct_exemplar_set(self, train_set, m, herding: bool):   
-    train_set.set_transform_status(False)    
+    train_set.dataset.set_transform_status(False)    
     samples = [[] for i in range(10)]
     new_exemplar_set = [[] for i in range(10)]
     for _, images, labels in train_set:
       labels = labels % 10
       samples[labels].append(images)
-    train_set.set_transform_status(True)
+    train_set.dataset.set_transform_status(True)
     
     if herding is True:
       new_exemplar_set = self.prioritized_selection(samples, new_exemplar_set, m)
@@ -190,14 +185,16 @@ class iCaRL(LearningWithoutForgetting):
       print(f"Extracted {len(exemplars[i])} exemplars.")
     return exemplars
 
-  def classify(self, images, train_set):
+########## ALGORITHM 1 ################################################################## 
+
+  def classify(self, images, train_set=None):
     feature_map = self.features_extractor(images)
     for i in range(feature_map.size(0)):
       feature_map[i] = feature_map[i] / feature_map[i].norm()
     feature_map = feature_map.to(self.DEVICE)
 
     if self.means is None:
-      self.mean_of_exemplars(train_set)
+      self.means = self.mean_of_exemplars(train_set)
 
     class_labels = []
     for i in range(feature_map.size(0)):
@@ -208,27 +205,34 @@ class iCaRL(LearningWithoutForgetting):
 
   def features_extractor(self, images, batch=True, transform=None):
     assert not (batch is False and transform is None), "if a PIL image is passed to extract_features, a transform must be defined"
+    self.net.train(False)
+    if self.best_net is not None: self.best_net.train(False)
+    if self.old_net is not None: self.old_net.train(False)
+    
     if batch is False:
       images = transform(images)
       images = images.unsqueeze(0)
     images = images.to(self.DEVICE)
-    features = self.best_net.features(images)
-    if batch is False: 
-      features = features[0]
+    
+    if self.VALIDATE: features = self.best_net.features(images)
+    else: features = self.net.features(images)
+    if batch is False: features = features[0]
+    
     return features
   
-  def mean_of_exemplars(self, train_set):
+  def mean_of_exemplars(self, train_set=None):
     print("Computing mean of exemplars... ", end="")
     self.means = []
-    train_features = [[] for i in range(10)]
-    for _, img, labels in train_set:
-      f = self.features_extractor(img, False, self.test_transform)
-      f = f / f.norm()
-      train_features[labels % 10].append(f)
+    if train_set is not None:
+      train_features = [[] for i in range(10)]
+      for _, img, labels in train_set:
+        f = self.features_extractor(img, False, self.test_transform)
+        f = f / f.norm()
+        train_features[labels % 10].append(f)
 
     num_classes = len(self.exemplar_set)
     for i in range(num_classes):
-      if i >= (num_classes-10):
+      if (train_dataset is not None) and (i in range(num_classes-10, num_classes)):
         f_list = train_features[i % 10]
       else:
         f_list = []
@@ -246,3 +250,4 @@ class iCaRL(LearningWithoutForgetting):
 
     self.means = torch.stack(self.means).to(self.DEVICE)
     print("done")
+    retun self.means
