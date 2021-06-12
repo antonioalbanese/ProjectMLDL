@@ -95,7 +95,6 @@ class Trainer(torch.nn.Module):
     running_loss = 0
     running_corrects = 0
     total = 0
-    print(len(self.train_dl[classes_group_idx]))
     for _, images, labels in self.train_dl[classes_group_idx]:
       self.optimizer.zero_grad()
 
