@@ -90,11 +90,7 @@ class LearningWithoutForgetting(Trainer):
       num_classes = self.net.fc.out_features
       one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
       
-      if self.old_net is None:
-        output = self.net(images)    
-        loss = self.criterion(output, one_hot_labels)
-      else:
-        output, loss = self.distill_loss(images, one_hot_labels, num_classes)
+      output, loss = self.distill_loss(images, one_hot_labels, num_classes)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
@@ -111,11 +107,12 @@ class LearningWithoutForgetting(Trainer):
     return epoch_loss, epoch_acc
 
   def distill_loss(self, images, one_hot_labels, num_classes):
-    self.old_net.to(self.DEVICE)
+    if self.old_net is not None:
+      self.old_net.to(self.DEVICE)    
+      sigmoid = nn.Sigmoid()
+      old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]  
+      one_hot_labels = torch.cat((old_net_output, one_hot_labels), dim=1)   
     
-    sigmoid = nn.Sigmoid()
-    old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]  
-    one_hot_labels = torch.cat((old_net_output, one_hot_labels), dim=1)   
     output = self.net(images)   
     loss = self.criterion(output, one_hot_labels)
     
@@ -134,12 +131,10 @@ class LearningWithoutForgetting(Trainer):
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
 
-      one_hot_labels = self.onehot_encoding(labels) 
-      #if classes_group_idx == 0:
-      output = self.net(images)    
-      loss = self.criterion(output, one_hot_labels)
-      #else:
-        #output, loss = self.lwf_loss(images, one_hot_labels, classes_group_idx)
+      num_classes = self.net.fc.out_features
+      one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
+      
+      output, loss = self.distill_loss(images, one_hot_labels, num_classes)
 
       running_loss += loss.item()
       _, preds = torch.max(output.data, 1)
