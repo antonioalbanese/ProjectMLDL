@@ -10,6 +10,7 @@ from copy import copy, deepcopy
 from model.lwf import LearningWithoutForgetting
 from data.exemplar import Exemplar
 import random
+from numpy.ma import masked_array
 
 class iCaRL(LearningWithoutForgetting):
   
@@ -175,8 +176,26 @@ class iCaRL(LearningWithoutForgetting):
       
   def prioritized_selection(self, samples, exemplars, m):
     for i in range(10):
-      print(f"Randomly extracting exemplars from class {i} of current split... ", end="")
-      exemplars[i] = random.sample(samples[i], m) # delete this and implement algorithm 4 from iCaRL paper
+      print(f"Extracting exemplars from class {i} of current split... ", end="")
+      transformed_samples = torch.zeros((len(samples[i]), 3, 32, 32)).to(self.DEVICE)
+      for j in range(len(transformed_samples)):
+        transformed_samples[j] = self.test_transform(samples[i][j])
+      phi = self.features_extractor(transformed_samples).to(self.DEVICE)
+      mu = phi.mean(dim=0)
+      Py = []
+      phi_sum = torch.zeros(64).to(self.device)
+      for k in range(1, int(m + 1)):
+        if k > 1:
+          phi_sum = phi[Py].sum(dim=0)
+        mean_distances = torch.norm(mu - 1/k * phi * phi_sum, dim=1)
+        
+        mask = np.zeros(len(mean_distances), int)
+        mask[Py] = 1
+        mean_distances = masked_array(mean_distances.cpu().detach().numpy(), mask = mask)
+        
+        Py.append(np.argmin(masked_mean_distances))
+      for y in Py:
+        exemplars[i].append(samples[i][y])
       print(f"Extracted {len(exemplars[i])} exemplars.")
     return exemplars
   
