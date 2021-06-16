@@ -183,7 +183,7 @@ class iCaRL(LearningWithoutForgetting):
       phi = self.features_extractor(transformed_samples).to(self.DEVICE)
       mu = phi.mean(dim=0)
       Py = []
-      phi_sum = torch.zeros(64).to(self.device)
+      phi_sum = torch.zeros(64).to(self.DEVICE)
       for k in range(1, int(m + 1)):
         if k > 1:
           phi_sum = phi[Py].sum(dim=0)
