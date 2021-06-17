@@ -193,7 +193,7 @@ class iCaRL(LearningWithoutForgetting):
         # mask[Py] = 1
         # mean_distances = masked_array(mean_distances.cpu().detach().numpy(), mask = mask)
         
-        Py.append(np.argmin(mean_distances))
+        Py.append(np.argmin(mean_distances.cpu().detach().numpy()))
       for y in Py:
         exemplars[i].append(samples[i][y])
       print(f"Extracted {len(exemplars[i])} exemplars.")
