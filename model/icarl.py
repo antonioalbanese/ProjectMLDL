@@ -100,6 +100,33 @@ class iCaRL(LearningWithoutForgetting):
     return logs
 
 ########################################################################################################################
+
+  def validate(self, classes_group_idx):
+    self.net.train(False)
+    running_loss = 0
+    running_corrects = 0
+    total = 0
+
+    for _, images, labels in self.validation_dl[classes_group_idx]:
+      total += labels.size(0)
+      self.optimizer.zero_grad()
+
+      images = images.to(self.DEVICE)
+      labels = labels.to(self.DEVICE)
+
+      one_hot_labels = self.onehot_encoding(labels) 
+      output = self.net(images)     
+      loss = self.criterion(output, one_hot_labels)
+
+      running_loss += loss.item()
+      _, preds = torch.max(output.data, 1)
+      running_corrects += torch.sum(preds == labels.data).data.item()
+
+    else:
+      val_loss = running_loss/len(self.validation_dl[classes_group_idx])
+      val_accuracy = running_corrects / float(total)
+
+    return val_loss, val_accuracy
   
   def test_classify(self, classes_group_idx, train_set):
     self.best_net.train(False)
