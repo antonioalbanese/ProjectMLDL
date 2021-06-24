@@ -118,7 +118,7 @@ class LearningWithoutForgetting(Trainer):
     
     return output, loss
   
-  def validate(self, classes_group_idx):
+  def validate_lwf(self, classes_group_idx):
     self.net.eval()
     running_loss = 0
     running_corrects = 0
