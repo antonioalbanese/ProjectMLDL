@@ -10,7 +10,6 @@ from copy import copy, deepcopy
 from model.lwf import LearningWithoutForgetting
 from data.exemplar import Exemplar
 import random
-# from numpy.ma import masked_array
 
 class iCaRL(LearningWithoutForgetting):
   
@@ -188,10 +187,6 @@ class iCaRL(LearningWithoutForgetting):
         if k > 1:
           phi_sum = phi[Py].sum(dim=0)
         mean_distances = torch.norm(mu - 1/k * phi * phi_sum, dim=1)
-        
-        # mask = np.zeros(len(mean_distances), int)
-        # mask[Py] = 1
-        # mean_distances = masked_array(mean_distances.cpu().detach().numpy(), mask = mask)
         
         Py.append(np.argmin(mean_distances.cpu().detach().numpy()))
       for y in Py:
