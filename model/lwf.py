@@ -117,31 +117,3 @@ class LearningWithoutForgetting(Trainer):
     loss = self.criterion(output, one_hot_labels)
     
     return output, loss
-  
-  def validate_lwf(self, classes_group_idx):
-    self.net.eval()
-    running_loss = 0
-    running_corrects = 0
-    total = 0
-
-    for _, images, labels in self.validation_dl[classes_group_idx]:
-      total += labels.size(0)
-      self.optimizer.zero_grad()
-
-      images = images.to(self.DEVICE)
-      labels = labels.to(self.DEVICE)
-
-      num_classes = self.net.fc.out_features
-      one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
-      
-      output, loss = self.distill_loss(images, one_hot_labels, num_classes)
-
-      running_loss += loss.item()
-      _, preds = torch.max(output.data, 1)
-      running_corrects += torch.sum(preds == labels.data).data.item()
-      
-    else:
-      val_loss = running_loss/len(self.validation_dl[classes_group_idx])
-      val_accuracy = running_corrects / float(total)
-
-    return val_loss, val_accuracy
