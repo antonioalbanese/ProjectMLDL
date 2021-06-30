@@ -142,8 +142,8 @@ class iCaRL(LearningWithoutForgetting):
     #use cosin_loss for classification loss on new classes
     #use CE loss for distillation loss for ald classes
     dist_criterion = nn.CosineEmbeddingLoss()
-    dist_criterion = nn.CrossEntropyLoss()
-    class
+    class_criterion = nn.CrossEntropyLoss()
+    
     if self.old_net is not None:
       self.old_net.to(self.DEVICE)    
       sigmoid = nn.Sigmoid()
