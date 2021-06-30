@@ -152,9 +152,11 @@ class iCaRL(LearningWithoutForgetting):
       dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output,torch.ones(images.shape[0]).to(device))
       class_loss = class_criterion(output[:,num_classes-10:],labels)
       loss = dist_loss + class_loss
+      print("dist_loss = {0}, class_loss = {1}, loss={2}".format(dist_loss,class_loss,loss))
     else:
       output = self.net(images)
       loss = class_criterion(output,labels) #when there are not old classes
+      print("loss={0}".format(dist_loss))
     
     return output, loss
 
