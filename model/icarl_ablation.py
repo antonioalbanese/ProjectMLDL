@@ -129,12 +129,15 @@ class iCaRL(LearningWithoutForgetting):
       running_corrects += torch.sum(preds == labels.data).data.item()
       total += labels.size(0)
       
+      
+      
       loss.backward()
       self.optimizer.step()
       
     else:
       epoch_loss = running_loss/len(self.train_dl[classes_group_idx])
       epoch_acc = running_corrects/float(total)
+      print("traing_loss = {0}".format(epoch_loss))
       
     return epoch_loss, epoch_acc
   
@@ -152,11 +155,11 @@ class iCaRL(LearningWithoutForgetting):
       dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output,torch.ones(images.shape[0]).to(self.DEVICE))
       class_loss = class_criterion(output,labels)
       loss = dist_loss + class_loss
-      print("dist_loss = {0}, class_loss = {1}, loss={2}".format(dist_loss,class_loss,loss))
+      
     else:
       output = self.net(images)
       loss = class_criterion(output,labels) #when there are not old classes
-      print("loss={0}".format(loss))
+      
     
     return output, loss
 
