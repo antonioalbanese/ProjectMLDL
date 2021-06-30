@@ -156,7 +156,7 @@ class iCaRL(LearningWithoutForgetting):
     else:
       output = self.net(images)
       loss = class_criterion(output,labels) #when there are not old classes
-      print("loss={0}".format(dist_loss))
+      print("loss={0}".format(loss))
     
     return output, loss
 
