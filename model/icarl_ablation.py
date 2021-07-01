@@ -175,7 +175,7 @@ class iCaRL(LearningWithoutForgetting):
       sigmoid = nn.Sigmoid()
       old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]
       output = self.net(images)
-      dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output,torch.ones(images.shape[0]).to(self.DEVICE))
+      dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output)#,torch.ones(images.shape[0]).to(self.DEVICE))
       class_loss = class_criterion(output,labels)
       loss = dist_loss + class_loss
       
