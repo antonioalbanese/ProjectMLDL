@@ -120,7 +120,8 @@ class iCaRL(LearningWithoutForgetting):
         if self.loss_type == 1:
           output, loss = self.cosine_loss(images, labels, num_classes)
         if self.loss_type == 2:
-          output, loss = self.distill_loss(images, one_hot_labels, num_classes)
+          #output, loss = self.distill_loss(images, one_hot_labels, num_classes)
+          output, loss = self.L2_loss(images, labels, num_classes)
       else:
         output, loss = self.distill_loss(images, one_hot_labels, num_classes)
 
@@ -162,6 +163,28 @@ class iCaRL(LearningWithoutForgetting):
       
     
     return output, loss
+  
+  def L2_loss(self, images, labels, num_classes):
+    #L2 (MSE) as distillation loss
+    #CE as classification loss
+    dist_criterion = nn.MSELoss()
+    class_criterion = nn.CrossEntropyLoss()
+    
+    if self.old_net is not None:
+      self.old_net.to(self.DEVICE)    
+      sigmoid = nn.Sigmoid()
+      old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]
+      output = self.net(images)
+      dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output,torch.ones(images.shape[0]).to(self.DEVICE))
+      class_loss = class_criterion(output,labels)
+      loss = dist_loss + class_loss
+      
+    else:
+      output = self.net(images)
+      loss = class_criterion(output,labels) #when there are not old classes
+      
+    
+    return output, loss    
 
 ########################################################################################################################
   
