@@ -27,6 +27,8 @@ class iCaRL(LearningWithoutForgetting):
     self.exemplar_set = []
     self.means = None
     self.loss_type = loss_type
+    
+    self.svc = SVC(kernel='poly')
   
   def train_model(self, num_epochs, herding: bool, classify: bool):
     
@@ -200,6 +202,7 @@ class iCaRL(LearningWithoutForgetting):
     ex_targets = torch.tensor([])
     
     with torch.no_grad():
+      train_set.dataset.set_transform_status(True)
       for k,ex_set in enumerate(self.exemplar_set):
         transformed_ex = torch.zeros((len(ex_set), 3, 32, 32)).to(self.DEVICE)
         for j in range(len(transformed_ex)):
@@ -215,12 +218,12 @@ class iCaRL(LearningWithoutForgetting):
         images = images.to(self.DEVICE)
         labels = labels.to(self.DEVICE)
         total += labels.size(0)
-        transformed_images = torch.zeros((len(images), 3, 32, 32)).to(self.DEVICE)
-        for j in range(len(transformed_images)):
-          transformed_images[j] = self.test_transform(transformed_images[j])
+        #transformed_images = torch.zeros((len(images), 3, 32, 32)).to(self.DEVICE)
+        #for j in range(len(transformed_images)):
+        #  transformed_images[j] = self.test_transform(transformed_images[j])
 
         all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
-        feature_map = self.features_extractor(transformed_images)
+        feature_map = self.features_extractor(images)
         for i in range(feature_map.size(0)):
           feature_map[i] = feature_map[i] / feature_map[i].norm()
         feature_map = feature_map.detach().to(self.DEVICE)
