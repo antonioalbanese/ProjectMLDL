@@ -285,7 +285,7 @@ class SVM_Classifier(iCaRL):
     
     X = np.zeros((len(data), 3, 32, 32))
     y = np.zeros(len(data), dtype=int)
-    data.dataset.set_transform_status(False)
+    data.dataset.set_transform_status(True)
     dataloader = DataLoader(data, batch_size=1)
     for i, (_, images, labels) in enumerate(dataloader):
       X[i] = images[0].numpy()
