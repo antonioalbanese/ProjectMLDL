@@ -282,7 +282,7 @@ class SVM_Classifier(iCaRL):
     self.PARAMS = params
   
   def separate_data(self, data):
-    """X = np.zeros((len(data), 3, 32, 32))
+    X = np.zeros((len(data), 3, 32, 32))
     y = np.zeros(len(data), dtype=int)
     for i, (_, images, labels) in enumerate(data):
       X[i] = images[0].numpy()
@@ -290,7 +290,9 @@ class SVM_Classifier(iCaRL):
     X_features = self.features_extractor(torch.tensor(X, dtype=torch.float))
     for i in range(X_features.size(0)):
       X_features[i] = X_features[i]/X_features[i].norm()
-    X_features = X_features.to('cpu').numpy()"""
+    X_features = X_features.to('cpu').numpy()
+    return X_features, y
+    """
     all_features = torch.tensor([])
     all_features = all_features.type(torch.LongTensor)
     all_targets = torch.tensor([])
@@ -308,6 +310,7 @@ class SVM_Classifier(iCaRL):
       all_features = torch.cat((all_features.to(self.DEVICE), feature_map.to(self.DEVICE)), dim=0)
     data.dataset.set_transform_status(True)
     return all_features.detach().cpu(), all_targets.detach().cpu()
+    """
     
   def fit_train_data(self, classes_group_idx):
     X_test, y_test = self.separate_data(self.validation_set[classes_group_idx])
