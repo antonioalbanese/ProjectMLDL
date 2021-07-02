@@ -1,3 +1,4 @@
+from sklearn.svm import SVC
 import torch
 import torch.nn as nn
 import torch.nn.init as init
@@ -78,7 +79,7 @@ class iCaRL(LearningWithoutForgetting):
       self.construct_exemplar_set(self.train_set[g], m, herding)
       
       if classify is True:
-        test_accuracy, true_targets, predictions = self.test_classify(g, self.train_set[g])
+        test_accuracy, true_targets, predictions = SVMClassify(self,g, self.train_set[g], train_on_exemplars=True) 
       else:
         test_accuracy, true_targets, predictions = self.test(g)
       print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
@@ -184,7 +185,53 @@ class iCaRL(LearningWithoutForgetting):
       loss = class_criterion(output,labels) #when there are not old classes
       
     
-    return output, loss    
+    return output, loss   
+  
+  def SVMClassify(self,classes_group_idx, train_set, train_on_exemplars: bool):
+    all_preds = torch.tensor([])
+    all_preds = all_preds.type(torch.LongTensor)
+    all_targets = torch.tensor([])
+    all_targets = all_targets.type(torch.LongTensor)
+    all_features = torch.tensor([])
+    all_features = all_features.type(torch.LongTensor)
+    ex_features = torch.tensor([])
+    ex_features = ex_features.type(torch.LongTensor)
+    ex_targets = torch.tensor([])
+    for k,ex_set in enumerate(self.exemplar_set):
+      for img in ex_set:
+        ex_feat = self.features_extractor(img.to(self.DEVICE).unsquize(0))
+        ex_features = torch.cat((ex_features.to(self.DEVICE), ex_feat.to(self.DEVICE)), dim=0)
+        ex_targets = torch.cat((ex_tagets.to(self.DEVICE), torc.tensor(k).to(self.DEVICE)))
+    
+    
+    total = 0
+    for _, images, labels in self.test_dl[classes_group_idx]:
+      images = images.to(self.DEVICE)
+      labels = labels.to(self.DEVICE)
+      total += labels.size(0)
+      
+      
+      all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
+      feature_map = self.features_extractor(images)
+      for i in range(feature_map.size(0)):
+        feature_map[i] = feature_map[i] / feature_map[i].norm()
+      feature_map = feature_map.to(self.DEVICE)
+      all_features = torch.cat((all_features.to(self.DEVICE), feature_map.to(self.DEVICE)), dim=0)
+
+    else:
+      if train_set is not None: train_set.dataset.set_transform_status(True)
+      classifier = SVC(kernel='poly')
+      if train_on_exemplars == False: 
+        classifier.fit(all_features, all_targets)
+      else: 
+        classifier.fit(ex_features, ex_targets)
+      
+      preds = classifier.predict(all_features)
+      corrects = torch.sum(preds == labels.data).data.item()
+      accuracy = corrects/float(total)
+      
+
+    return accuracy, all_targets, all_preds    
 
 ########################################################################################################################
   
