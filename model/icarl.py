@@ -285,7 +285,7 @@ class SVM_Classifier(iCaRL):
     
     X = np.zeros((len(data), 3, 32, 32))
     y = np.zeros(len(data), dtype=int)
-    data.dataset.set_transform_status(True)
+    #data.dataset.set_transform_status(True)
     dataloader = DataLoader(data, batch_size=1)
     for i, (_, images, labels) in enumerate(dataloader):
       X[i] = images[0].numpy()
@@ -316,10 +316,11 @@ class SVM_Classifier(iCaRL):
     """
     
   def fit_train_data(self, classes_group_idx):
-    X_test, y_test = self.separate_data(self.validation_set[classes_group_idx])
+    
     exemplars = Exemplar(self.exemplar_set, self.train_transform)
     ex_train_set = ConcatDataset([exemplars, self.train_set[classes_group_idx]])
     X_train, y_train = self.separate_data(ex_train_set)
+    X_test, y_test = self.separate_data(self.validation_set[classes_group_idx])
     
     self.clf = SVC()   
     best_clf = None
