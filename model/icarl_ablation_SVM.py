@@ -230,7 +230,8 @@ class iCaRL(LearningWithoutForgetting):
         classifier.fit(ex_features.detach().cpu(), ex_targets.detach().cpu())
       
       preds = classifier.predict(all_features.cpu())
-      print(preds)
+      for p in preds:
+        print(p)
       #corrects = torch.sum(preds == labels.data).data.item()
       #accuracy = corrects/float(total)
       
