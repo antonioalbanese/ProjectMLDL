@@ -11,6 +11,10 @@ from model.lwf import LearningWithoutForgetting
 from data.exemplar import Exemplar
 import random
 
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
+from sklearn.model_selection  import ParameterGrid
+
 class iCaRL(LearningWithoutForgetting):
   
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform):
@@ -286,8 +290,8 @@ class SVM_Classifier(iCaRL):
     return X, y
     
   def fit_train_data(self, classes_group_idx):
-    X_train, y_train = to_numpy(self.train_dl[classes_group_idx])
-    X_test, y_test = to_numpy(self.validation_dl[classes_group_idx])
+    X_train, y_train = self.to_numpy(self.train_dl[classes_group_idx])
+    X_test, y_test = self.to_numpy(self.validation_dl[classes_group_idx])
     
     self.clf = SVC()   
     best_clf = None
@@ -310,7 +314,7 @@ class SVM_Classifier(iCaRL):
     print(f"Best classifier: {best_grid} with score {best_score}")
   
   def predict_test_data(self, classes_group_idx):
-    X_test, y_test = to_numpy(self.test_dl[classes_group_idx])
+    X_test, y_test = self.to_numpy(self.test_dl[classes_group_idx])
     y_pred = self.clf.predict(X_test)
     return y_test, y_pred
   
