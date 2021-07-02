@@ -27,12 +27,7 @@ class CIFAR100(torch.utils.data.Dataset):
         self.splits = self.make_class_splits(random_state)
 
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
-        """
-        Args:
-            index (int): Index
-        Returns:
-            tuple: (image, target) where target is index of the target class.
-        """
+        
         true_index = self.index_map[index]
         img, target = self.dataset.data[true_index], self.dataset.targets[true_index]
 
