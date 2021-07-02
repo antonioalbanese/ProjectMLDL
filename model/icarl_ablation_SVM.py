@@ -200,9 +200,9 @@ class iCaRL(LearningWithoutForgetting):
     ex_features = torch.tensor([])
     ex_features = ex_features.type(torch.LongTensor)
     ex_targets = torch.tensor([])
-    
+    train_set.dataset.set_transform_status(True)
     with torch.no_grad():
-      train_set.dataset.set_transform_status(True)
+      
       for k,ex_set in enumerate(self.exemplar_set):
         transformed_ex = torch.zeros((len(ex_set), 3, 32, 32)).to(self.DEVICE)
         for j in range(len(transformed_ex)):
