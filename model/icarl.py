@@ -281,10 +281,11 @@ class SVM_Classifier(iCaRL):
     self.test_set = test_set
     self.PARAMS = params
   
-  def separate_data(self, data):
+  def separate_data(self, dataset):
     X = np.zeros((len(data), 3, 32, 32))
     y = np.zeros(len(data), dtype=int)
-    for i, (_, images, labels) in enumerate(data):
+    dataloader = DataLoader(dataset, batch_size=1)
+    for i, (_, images, labels) in enumerate(dataloader):
       X[i] = images[0].numpy()
       y[i] = labels.numpy()[0]
     X_features = self.features_extractor(torch.tensor(X, dtype=torch.float))
