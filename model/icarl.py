@@ -309,8 +309,9 @@ class SVM_Classifier(iCaRL):
     return all_features.detach().cpu(), all_targets.detach().cpu()
     
   def fit_train_data(self, classes_group_idx):
-    X_train, y_train = self.separate_data(self.train_dl[classes_group_idx])
     X_test, y_test = self.separate_data(self.validation_dl[classes_group_idx])
+    X_train, y_train = self.separate_data(self.train_dl[classes_group_idx])
+    
     
     self.clf = SVC()   
     best_clf = None
