@@ -293,6 +293,7 @@ class SVM_Classifier(iCaRL):
     all_features = all_features.type(torch.LongTensor)
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
+    data.dataset.set_transform_status(False)
     for _, images, labels in data:
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
@@ -304,7 +305,7 @@ class SVM_Classifier(iCaRL):
         feature_map[i] = feature_map[i] / feature_map[i].norm()
       feature_map = feature_map.to(self.DEVICE)
       all_features = torch.cat((all_features.to(self.DEVICE), feature_map.to(self.DEVICE)), dim=0)
-    
+    data.dataset.set_transform_status(True)
     return all_features.detach().cpu(), all_targets.detach().cpu()
     
   def fit_train_data(self, classes_group_idx):
