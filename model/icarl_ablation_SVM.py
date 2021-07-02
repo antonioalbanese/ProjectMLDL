@@ -218,7 +218,7 @@ class iCaRL(LearningWithoutForgetting):
       feature_map = self.features_extractor(images)
       for i in range(feature_map.size(0)):
         feature_map[i] = feature_map[i] / feature_map[i].norm()
-      feature_map = feature_map.to(self.DEVICE)
+      feature_map = feature_map.detach().to(self.DEVICE)
       all_features = torch.cat((all_features.to(self.DEVICE), feature_map.to(self.DEVICE)), dim=0)
 
     else:
