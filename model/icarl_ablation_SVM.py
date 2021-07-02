@@ -201,7 +201,7 @@ class iCaRL(LearningWithoutForgetting):
       transformed_ex = torch.zeros((len(ex_set), 3, 32, 32)).to(self.DEVICE)
       for j in range(len(transformed_ex)):
         transformed_ex[j] = self.test_transform(ex_set[j])
-        ex_targets = torch.cat((ex_tagets.to(self.DEVICE), torc.tensor(k).to(self.DEVICE)))
+        ex_targets = torch.cat((ex_targets.to(self.DEVICE), torc.tensor(k).to(self.DEVICE)))
       ex_feat = self.features_extractor(transformed_samples).to(self.DEVICE)
       ex_features = torch.cat((ex_features.to(self.DEVICE), ex_feat.to(self.DEVICE)), dim=0)
       
