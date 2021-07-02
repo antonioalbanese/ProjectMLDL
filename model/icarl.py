@@ -275,8 +275,10 @@ class iCaRL(LearningWithoutForgetting):
 
 class SVM_Classifier(iCaRL):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, params):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, val_set, test_set, params):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
+    self.validation_set = val_set
+    self.test_set = test_set
     self.PARAMS = params
   
   def separate_data(self, data):
@@ -308,16 +310,17 @@ class SVM_Classifier(iCaRL):
     return all_features.detach().cpu(), all_targets.detach().cpu()
     
   def fit_train_data(self, classes_group_idx):
-    X_test, y_test = self.separate_data(copy(self.validation_dl[classes_group_idx]))
-    X_train, y_train = self.separate_data(copy(self.train_dl[classes_group_idx]))
-    
+    X_test, y_test = self.separate_data(self.validation_set[classes_group_idx])
+    exemplars = Exemplar(self.exemplar_set, self.train_transform)
+    ex_train_set = ConcatDataset([exemplars, self.train_set[classes_group_idx]])
+    X_train, y_train = self.separate_data(ex_train_set)
     
     self.clf = SVC()   
     best_clf = None
     best_grid = None
     best_score = 0
     
-    for grid in ParameterGrid(params):
+    for grid in ParameterGrid(self.PARAMS):
         self.clf.set_params(**grid)
         self.clf.fit(X_train, y_train)
         y_pred = self.clf.predict(X_test)
@@ -333,7 +336,7 @@ class SVM_Classifier(iCaRL):
     print(f"Best classifier: {best_grid} with score {best_score}")
   
   def predict_test_data(self, classes_group_idx):
-    X_test, y_test = self.separate_data(copy(self.test_dl[classes_group_idx]))
+    X_test, y_test = self.separate_data(self.test_set[classes_group_idx])
     y_pred = self.clf.predict(X_test)
     return y_test, y_pred
   
