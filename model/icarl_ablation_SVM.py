@@ -79,7 +79,7 @@ class iCaRL(LearningWithoutForgetting):
       self.construct_exemplar_set(self.train_set[g], m, herding)
       
       if classify is True:
-        test_accuracy, true_targets, predictions = SVMClassify(self,g, self.train_set[g], train_on_exemplars=True) 
+        test_accuracy, true_targets, predictions = SVMClassify(g, self.train_set[g], train_on_exemplars=True) 
       else:
         test_accuracy, true_targets, predictions = self.test(g)
       print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
