@@ -293,7 +293,6 @@ class SVM_Classifier(iCaRL):
     all_features = all_features.type(torch.LongTensor)
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
-    data.dataset.set_transform_status(False)
     for _, images, labels in data:
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
