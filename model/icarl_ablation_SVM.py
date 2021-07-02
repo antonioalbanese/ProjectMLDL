@@ -79,7 +79,7 @@ class iCaRL(LearningWithoutForgetting):
       self.construct_exemplar_set(self.train_set[g], m, herding)
       
       if classify is True:
-        test_accuracy, true_targets, predictions = self.SVMClassify(g, self.train_set[g], train_on_exemplars=True) 
+        test_accuracy, true_targets, predictions = self.SVMClassify(g, self.train_set[g], train_on_exemplars=False) 
       else:
         test_accuracy, true_targets, predictions = self.test(g)
       print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
@@ -188,6 +188,7 @@ class iCaRL(LearningWithoutForgetting):
     return output, loss   
   
   def SVMClassify(self,classes_group_idx, train_set, train_on_exemplars: bool):
+    if self.best_net is not None: self.best_net.train(False)
     all_preds = torch.tensor([])
     all_preds = all_preds.type(torch.LongTensor)
     all_targets = torch.tensor([])
@@ -197,43 +198,45 @@ class iCaRL(LearningWithoutForgetting):
     ex_features = torch.tensor([])
     ex_features = ex_features.type(torch.LongTensor)
     ex_targets = torch.tensor([])
-    for k,ex_set in enumerate(self.exemplar_set):
-      transformed_ex = torch.zeros((len(ex_set), 3, 32, 32)).to(self.DEVICE)
-      for j in range(len(transformed_ex)):
-        transformed_ex[j] = self.test_transform(ex_set[j])
-        ex_targets = torch.cat((ex_targets.to(self.DEVICE), torch.tensor([k]).to(self.DEVICE)))
-      ex_feat = self.features_extractor(transformed_ex).to(self.DEVICE)
-      ex_features = torch.cat((ex_features.to(self.DEVICE), ex_feat.to(self.DEVICE)), dim=0)
+    
+    with torch.no_grad():
+      for k,ex_set in enumerate(self.exemplar_set):
+        transformed_ex = torch.zeros((len(ex_set), 3, 32, 32)).to(self.DEVICE)
+        for j in range(len(transformed_ex)):
+          transformed_ex[j] = self.test_transform(ex_set[j])
+          ex_targets = torch.cat((ex_targets.to(self.DEVICE), torch.tensor([k]).to(self.DEVICE)))
+        ex_feat = self.features_extractor(transformed_ex).to(self.DEVICE)
+        ex_features = torch.cat((ex_features.to(self.DEVICE), ex_feat.to(self.DEVICE)), dim=0)
       
     
     
-    total = 0
-    for _, images, labels in self.test_dl[classes_group_idx]:
-      images = images.to(self.DEVICE)
-      labels = labels.to(self.DEVICE)
-      total += labels.size(0)
-      
-      
-      all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
-      feature_map = self.features_extractor(images)
-      for i in range(feature_map.size(0)):
-        feature_map[i] = feature_map[i] / feature_map[i].norm()
-      feature_map = feature_map.detach().to(self.DEVICE)
-      all_features = torch.cat((all_features.to(self.DEVICE), feature_map.to(self.DEVICE)), dim=0)
+      total = 0
+      for _, images, labels in self.train_dl[classes_group_idx]:
+        images = images.to(self.DEVICE)
+        labels = labels.to(self.DEVICE)
+        total += labels.size(0)
 
-    else:
-      if train_set is not None: train_set.dataset.set_transform_status(True)
-      classifier = SVC(kernel='poly')
-      if train_on_exemplars == False: 
-        classifier.fit(all_features, all_targets)
-      else: 
-        classifier.fit(ex_features.detach().cpu(), ex_targets.detach().cpu())
-      
-      preds = classifier.predict(all_features.cpu())
-      for p in preds:
-        print(p)
-      #corrects = torch.sum(preds == labels.data).data.item()
-      #accuracy = corrects/float(total)
+
+        all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
+        feature_map = self.features_extractor(images)
+        for i in range(feature_map.size(0)):
+          feature_map[i] = feature_map[i] / feature_map[i].norm()
+        feature_map = feature_map.detach().to(self.DEVICE)
+        all_features = torch.cat((all_features.to(self.DEVICE), feature_map.to(self.DEVICE)), dim=0)
+
+      else:
+        if train_set is not None: train_set.dataset.set_transform_status(True)
+        classifier = SVC(kernel='poly')
+        if train_on_exemplars == False: 
+          classifier.fit(all_features.detach().cpu(), all_targets.detach().cpu())
+        else: 
+          classifier.fit(ex_features.detach().cpu(), ex_targets.detach().cpu())
+
+        preds = classifier.predict(all_features.cpu())
+        for p in preds:
+          print(p)
+        #corrects = torch.sum(preds == labels.data).data.item()
+        #accuracy = corrects/float(total)
       
 
     return 0, all_targets, all_preds    
