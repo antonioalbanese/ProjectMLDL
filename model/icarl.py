@@ -266,3 +266,74 @@ class iCaRL(LearningWithoutForgetting):
 
     self.means = torch.stack(self.means).to(self.DEVICE)
     print("done")
+
+class SVM_Classifier(iCaRL):
+  
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, params):
+    super().__init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
+    self.PARAMS = params
+  
+  def to_numpy(self, data):
+    X = np.zeros((len(data), 3, 32, 32))
+    y = np.zeros(len(data), dtype=int)
+    for i, (_, images, labels) in enumerate(data):
+      X[i] = images[0].numpy()
+      y[i] = labels.numpy()[0]
+    X_features = self.features_extractor(torch.tensor(X, dtype=torch.float))
+    for i in range(X_features.size(0)):
+      X_features[i] = X_features[i]/X_features[i].norm()
+    X_features = X_features.to('cpu').numpy()
+    return X, y
+    
+  def fit_train_data(self, classes_group_idx):
+    X_train, y_train = to_numpy(self.train_dl[classes_group_idx])
+    X_test, y_test = to_numpy(self.validation_dl[classes_group_idx])
+    
+    self.clf = SVC()   
+    best_clf = None
+    best_grid = None
+    best_score = 0
+    
+    for grid in ParameterGrid(params):
+        self.clf.set_params(**grid)
+        self.clf.fit(X_train, y_train)
+        y_pred = self.clf.predict(X_test)
+        score = accuracy_score(y_test, y_pred)
+
+        if score > best_score:
+            best_clf = deepcopy(self.clf)
+            best_score = score
+            best_grid = grid
+    else:
+      self.clf = best_clf
+
+    print(f"Best classifier: {best_grid} with score {best_score}")
+  
+  def predict_test_data(self, classes_group_idx):
+    X_test, y_test = to_numpy(self.test_dl[classes_group_idx])
+    y_pred = self.clf.predict(X_test)
+    return y_test, y_pred
+  
+  def test_classify(self, classes_group_idx, train_set):
+    self.best_net.train(False)
+    if self.best_net is not None: self.best_net.train(False)
+    if self.old_net is not None: self.old_net.train(False)
+    running_corrects = 0
+    total = 0
+
+    all_preds = torch.tensor([])
+    all_preds = all_preds.type(torch.LongTensor)
+    all_targets = torch.tensor([])
+    all_targets = all_targets.type(torch.LongTensor)
+    
+    with torch.no_grad():
+      self.fit_train_data(classes_group_idx)
+      labels, preds = self.predict_test_data(classes_group_idx)
+      accuracy = accuracy_score(labels, preds)
+
+      labels = torch.tensor(labels)
+      preds = torch.tensor(preds)
+      all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
+      all_preds = torch.cat((all_preds.to(self.DEVICE), preds.to(self.DEVICE)), dim=0) 
+
+    return accuracy, all_targets, all_preds
