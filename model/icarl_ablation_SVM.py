@@ -220,7 +220,7 @@ class iCaRL(LearningWithoutForgetting):
           transformed_images[j] = self.test_transform(transformed_images[j])
 
         all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
-        feature_map = self.features_extractor(images)
+        feature_map = self.features_extractor(transformed_images)
         for i in range(feature_map.size(0)):
           feature_map[i] = feature_map[i] / feature_map[i].norm()
         feature_map = feature_map.detach().to(self.DEVICE)
