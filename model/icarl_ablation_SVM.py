@@ -215,7 +215,9 @@ class iCaRL(LearningWithoutForgetting):
         images = images.to(self.DEVICE)
         labels = labels.to(self.DEVICE)
         total += labels.size(0)
-
+        transformed_images = torch.zeros((len(images), 3, 32, 32)).to(self.DEVICE)
+        for j in range(len(transformed_images)):
+          transformed_images[j] = self.test_transform(transformed_images[j])
 
         all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
         feature_map = self.features_extractor(images)
