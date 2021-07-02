@@ -308,8 +308,8 @@ class SVM_Classifier(iCaRL):
     return all_features.detach().cpu(), all_targets.detach().cpu()
     
   def fit_train_data(self, classes_group_idx):
-    X_test, y_test = self.separate_data(self.validation_dl[classes_group_idx])
-    X_train, y_train = self.separate_data(self.train_dl[classes_group_idx])
+    X_test, y_test = self.separate_data(copy(self.validation_dl[classes_group_idx]))
+    X_train, y_train = self.separate_data(copy(self.train_dl[classes_group_idx]))
     
     
     self.clf = SVC()   
@@ -333,7 +333,7 @@ class SVM_Classifier(iCaRL):
     print(f"Best classifier: {best_grid} with score {best_score}")
   
   def predict_test_data(self, classes_group_idx):
-    X_test, y_test = self.separate_data(self.test_dl[classes_group_idx])
+    X_test, y_test = self.separate_data(copy(self.test_dl[classes_group_idx]))
     y_pred = self.clf.predict(X_test)
     return y_test, y_pred
   
