@@ -299,11 +299,10 @@ class SVM_Classifier(iCaRL):
     all_features = all_features.type(torch.LongTensor)
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
-    dataloader = DataLoader(data, batch_size=1)
-    for _, images, labels in dataloader:
+    data.dataset.set_transform_status(False)
+    for _, images, labels in data:
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
-      total += labels.size(0)
       
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
       feature_map = self.features_extractor(images)
