@@ -227,7 +227,7 @@ class iCaRL(LearningWithoutForgetting):
       if train_on_exemplars == False: 
         classifier.fit(all_features, all_targets)
       else: 
-        classifier.fit(ex_features.cpu(), ex_targets.cpu())
+        classifier.fit(ex_features.detach().cpu(), ex_targets.detach().cpu())
       
       preds = classifier.predict(all_features.cpu())
       corrects = torch.sum(preds == labels.data).data.item()
