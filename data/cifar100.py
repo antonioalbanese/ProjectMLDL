@@ -44,7 +44,7 @@ class CIFAR100(torch.utils.data.Dataset):
         return len(self.index_map)
     
     def set_transform_status(self, state: bool):
-        self.transform_status = bool
+        self.transform_status = state
         
     def shuffle_list(self, random_state: int, list_to_shuffle):
         rs = np.random.RandomState(random_state)
