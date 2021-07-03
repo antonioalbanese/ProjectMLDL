@@ -29,7 +29,7 @@ class CIFAR100(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         
         true_index = self.index_map[index]
-        img, target = self.dataset.data[true_index], self.dataset.targets[true_index]
+        img, target = copy(self.dataset.data[true_index]), self.dataset.targets[true_index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
