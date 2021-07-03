@@ -5,7 +5,7 @@ Adapted from https://github.com/pytorch/vision/blob/master/torchvision/datasets/
 from PIL import Image
 import numpy as np
 from typing import Any, Callable, Optional, Tuple
-from copy import copy, deepcopy
+from copy import copy
 import torch
 from torchvision import transforms
 from torchvision import datasets
@@ -29,11 +29,11 @@ class CIFAR100(torch.utils.data.Dataset):
     def __getitem__(self, index: int) -> Tuple[Any, Any]:
         
         true_index = self.index_map[index]
-        img, target = deepcopy(self.dataset.data[true_index]), self.dataset.targets[true_index]
+        extracted_img, target = self.dataset.data[true_index], self.dataset.targets[true_index]
 
         # doing this so that it is consistent with all other datasets
         # to return a PIL Image
-        img = Image.fromarray(img)
+        img = Image.fromarray(extracted_img)
         if (self.transform is not None) and (self.transform_status is True): img = self.transform(img)
             
         target = self.target_map[target]
