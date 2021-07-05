@@ -275,32 +275,15 @@ class iCaRL(LearningWithoutForgetting):
 
 class SVM_Classifier(iCaRL):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, val_set, test_set, params):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, params):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
-    self.validation_set = val_set
-    self.test_set = test_set
     self.PARAMS = params
-  
+
   def separate_data(self, data):
-    
-    X = np.zeros((len(data), 3, 32, 32))
-    y = np.zeros(len(data), dtype=int)
-    #data.dataset.set_transform_status(True)
-    dataloader = DataLoader(data, batch_size=1)
-    for i, (_, images, labels) in enumerate(dataloader):
-      X[i] = images[0].numpy()
-      y[i] = labels.numpy()[0]
-    X_features = self.features_extractor(torch.tensor(X, dtype=torch.float))
-    for i in range(X_features.size(0)):
-      X_features[i] = X_features[i]/X_features[i].norm()
-    X_features = X_features.to('cpu').numpy()
-    return X_features, y
-    """
     all_features = torch.tensor([])
     all_features = all_features.type(torch.LongTensor)
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
-    data.dataset.set_transform_status(False)
     for _, images, labels in data:
       images = images.to(self.DEVICE)
       labels = labels.to(self.DEVICE)
@@ -311,16 +294,16 @@ class SVM_Classifier(iCaRL):
         feature_map[i] = feature_map[i] / feature_map[i].norm()
       feature_map = feature_map.to(self.DEVICE)
       all_features = torch.cat((all_features.to(self.DEVICE), feature_map.to(self.DEVICE)), dim=0)
-    data.dataset.set_transform_status(True)
     return all_features.detach().cpu(), all_targets.detach().cpu()
-    """
     
-  def fit_train_data(self, classes_group_idx):
+    
+  def fit_train_data(self, classes_group_idx, train_set):
     
     exemplars = Exemplar(self.exemplar_set, self.train_transform)
-    ex_train_set = ConcatDataset([exemplars, self.train_set[classes_group_idx]])
-    X_train, y_train = self.separate_data(ex_train_set)
-    X_test, y_test = self.separate_data(self.validation_set[classes_group_idx])
+    tmp_dl = DataLoader(exemplars,
+                        batch_size=self.BATCH_SIZE)
+    X_train, y_train = self.separate_data(tmp_dl)
+    X_test, y_test = self.separate_data(self.validation_dl[classes_group_idx])
     
     self.clf = SVC()   
     best_clf = None
@@ -337,13 +320,12 @@ class SVM_Classifier(iCaRL):
             best_clf = deepcopy(self.clf)
             best_score = score
             best_grid = grid
-    else:
-      self.clf = best_clf
+    self.clf = best_clf
 
     print(f"Best classifier: {best_grid} with score {best_score}")
   
   def predict_test_data(self, classes_group_idx):
-    X_test, y_test = self.separate_data(self.test_set[classes_group_idx])
+    X_test, y_test = self.separate_data(self.test_dl[classes_group_idx])
     y_pred = self.clf.predict(X_test)
     return y_test, y_pred
   
@@ -358,7 +340,7 @@ class SVM_Classifier(iCaRL):
     all_targets = all_targets.type(torch.LongTensor)
     
     with torch.no_grad():
-      self.fit_train_data(classes_group_idx)
+      self.fit_train_data(classes_group_idx, train_set)
       labels, preds = self.predict_test_data(classes_group_idx)
       accuracy = accuracy_score(labels, preds)
 
