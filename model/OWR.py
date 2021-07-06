@@ -17,7 +17,7 @@ from sklearn.model_selection  import ParameterGrid
 
 class owrIncremental(LearningWithoutForgetting):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_on_openset):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl)
     self.BATCH_SIZE = BATCH_SIZE
     self.VALIDATE = True
@@ -29,19 +29,21 @@ class owrIncremental(LearningWithoutForgetting):
     self.memory_size = 2000
     self.exemplar_set = []
     self.means = None
-    self.test_on_openset = test_on_openset
+    self.test_mode = test_mode
   
   def train_model(self, num_epochs):
     
     cudnn.benchmark
     
-    logs = {'group_train_loss': [float for j in range(10)],
-             'group_train_accuracies': [float for j in range(10)],
+    logs = {'group_train_loss': [float for j in range(5)],
+             'group_train_accuracies': [float for j in range(5)],
              'predictions': [int],
-             'test_accuracies': [float for j in range(10)],
+             'test_accuracies': [float for j in range(5)],
              'true_labels': [int],
-             'val_accuracies': [float for j in range(10)],
-             'val_losses': [float for j in range(10)]}
+             'val_accuracies': [float for j in range(5)],
+             'val_losses': [float for j in range(5)],
+             'open_values': [float for j in range(5)],
+             'closed_values': [float for j in range(5)]}
     
     for g in range(5):
       self.net.to(self.DEVICE)
@@ -81,17 +83,20 @@ class owrIncremental(LearningWithoutForgetting):
       m = self.reduce_exemplar_set()
       self.construct_exemplar_set(self.train_set[g], m)
       
-      if self.test_on_openset == True:
-        test_accuracy, true_targets, predictions, only_unknown_targets, only_unknown_preds, only_unknown_values = self.test_openset(g)
+      if self.test_mode == "open":
+        test_accuracy, true_targets, predictions, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values = self.test_openset(g)
         corrects_in_unknown = torch.sum(only_unknown_targets == only_unknown_preds).data.item()
         print(f"Testing openset: 50 clasess never seen, rejection accuracy: {test_accuracy}")
         print(f"{only_unknown_targets.size(0)} unkown found over {true_targets.size(0)} images unkown")
-      else:
-        test_accuracy, true_targets, predictions, only_unknown_targets, only_unknown_preds, only_unknown_values = self.test_rejection(g)
+        logs['open_values'] = all_values
+      elif self.test_mode == "closed"
+        test_accuracy, true_targets, predictions, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values = self.test_rejection(g)
         corrects_in_unknown = torch.sum(only_unknown_targets == only_unknown_preds).data.item()
         print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
         print(f"{only_unknown_targets.size()[0]} unkown found, {corrects_in_unknown} predictions of them where correct")
-      
+        logs['closed_values'] = all_values
+      elif self.test_mode == "harmonic":
+             #harmonic test
       
       
       
@@ -225,7 +230,7 @@ class owrIncremental(LearningWithoutForgetting):
 
     else:
       accuracy = running_corrects / float(total)  
-    return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values
+    return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values, values
 
 
   def test_rejection(self, classes_group_idx):
@@ -272,4 +277,4 @@ class owrIncremental(LearningWithoutForgetting):
       else:
         accuracy = running_corrects / float(total)  
 
-      return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values
+      return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values, values
