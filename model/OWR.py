@@ -197,7 +197,7 @@ class owrIncremental(LearningWithoutForgetting):
 
   def test_openset(self,classes_group_idx):
     self.best_net.train(False)
-    softmax = nn.Softmax()
+    softmax = nn.Softmax(dim=1)
     threshold = 0.5
     running_corrects = 0
     total = 0
@@ -248,7 +248,7 @@ class owrIncremental(LearningWithoutForgetting):
 
   def test_rejection(self, classes_group_idx):
       self.best_net.train(False)
-      softmax = nn.Softmax()
+      softmax = nn.Softmax(dim=1)
       threshold = 0.5
       running_corrects = 0
       total = 0
