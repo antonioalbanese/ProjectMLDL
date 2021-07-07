@@ -197,6 +197,7 @@ class owrIncremental(LearningWithoutForgetting):
 
   def test_openset(self,classes_group_idx):
     self.best_net.train(False)
+    softmax = nn.Softmax()
     threshold = 0.5
     running_corrects = 0
     total = 0
@@ -222,7 +223,7 @@ class owrIncremental(LearningWithoutForgetting):
 
         outputs = self.best_net(images)
 
-        values, preds = torch.max(outputs.data, 1)
+        values, preds = torch.max(softmax(outputs).data, 1)
         below_mask = values < threshold
         unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
         preds_with_unknown = torch.where(below_mask, torch.tensor(unknowkn_class).to(self.DEVICE), preds)
@@ -247,6 +248,7 @@ class owrIncremental(LearningWithoutForgetting):
 
   def test_rejection(self, classes_group_idx):
       self.best_net.train(False)
+      softmax = nn.Softmax()
       threshold = 0.5
       running_corrects = 0
       total = 0
@@ -269,7 +271,7 @@ class owrIncremental(LearningWithoutForgetting):
 
         outputs = self.best_net(images)
 
-        values, preds = torch.max(outputs.data, 1)
+        values, preds = torch.max(softmax(outputs).data, 1)
         below_mask = values < threshold
         unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
         preds_with_unknown = torch.where(below_mask, torch.tensor(unknowkn_class).to(self.DEVICE), preds)
