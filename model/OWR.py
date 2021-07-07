@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import numpy as np
 from math import floor
 from copy import copy, deepcopy
-from model.icarl import iCarl
+from model.icarl import iCaRL
 from data.exemplar import Exemplar
 import random
 
@@ -15,7 +15,7 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection  import ParameterGrid
 
-class owrIncremental(iCarl):
+class owrIncremental(iCaRL):
   
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
