@@ -214,6 +214,8 @@ class owrIncremental(LearningWithoutForgetting):
     only_unknown_targets = only_unknown_targets.type(torch.LongTensor)
     only_unknown_preds = torch.tensor([])
     only_unknown_preds = only_unknown_preds.type(torch.LongTensor)
+    all_values = torch.tensor([])
+    all_values = all_values.type(torch.LongTensor)
     
     for i in range(5,10):
       for _, images, labels in self.test_dl[i]:
@@ -224,6 +226,7 @@ class owrIncremental(LearningWithoutForgetting):
         outputs = self.best_net(images)
 
         values, preds = torch.max(softmax(outputs).data, 1)
+        all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
         below_mask = values < threshold
         unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
         preds_with_unknown = torch.where(below_mask, torch.tensor(unknowkn_class).to(self.DEVICE), preds)
@@ -263,6 +266,8 @@ class owrIncremental(LearningWithoutForgetting):
       only_unknown_targets = only_unknown_targets.type(torch.LongTensor)
       only_unknown_preds = torch.tensor([])
       only_unknown_preds = only_unknown_preds.type(torch.LongTensor)
+      all_values = torch.tensor([])
+      all_values = all_values.type(torch.LongTensor)
 
       for _, images, labels in self.test_dl[classes_group_idx]:
         images = images.to(self.DEVICE)
@@ -272,6 +277,7 @@ class owrIncremental(LearningWithoutForgetting):
         outputs = self.best_net(images)
 
         values, preds = torch.max(softmax(outputs).data, 1)
+        all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
         below_mask = values < threshold
         unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
         preds_with_unknown = torch.where(below_mask, torch.tensor(unknowkn_class).to(self.DEVICE), preds)
