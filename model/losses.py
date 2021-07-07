@@ -15,7 +15,7 @@ class iCaRL_Loss(iCaRL):
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
   
-  def train_model(self, num_epochs, loss: string):
+  def train_model(self, num_epochs, loss):
     
     cudnn.benchmark
     
