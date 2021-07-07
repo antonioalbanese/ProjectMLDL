@@ -101,11 +101,11 @@ class iCaRL_Loss(iCaRL):
       num_classes = self.net.fc.out_features
       
       if loss is not None:
-        if loss = 'cosine':
+        if loss == 'cosine':
           dist_criterion = nn.CosineEmbeddingLoss()
-        elif loss = 'l2':
+        elif loss == 'l2':
           dist_criterion = nn.MSELoss()
-        elif loss = 'l1':
+        elif loss == 'l1':
           dist_criterion = nn.L1Loss()
         else:
           dist_criterion = None
