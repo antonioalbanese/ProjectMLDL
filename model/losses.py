@@ -84,7 +84,7 @@ class iCaRL_Loss(iCaRL):
     logs['predictions'] = predictions
     return logs
   
-  def train_epoch(self, classes_group_idx, loss):
+  def train_epoch(self, classes_group_idx, dist_loss):
     self.net.train()
     if self.old_net is not None: self.old_net.train(False)
     if self.best_net is not None: self.best_net.train(False)
@@ -100,12 +100,12 @@ class iCaRL_Loss(iCaRL):
 
       num_classes = self.net.fc.out_features
       
-      if loss is not None:
-        if loss == 'cosine':
+      if dist_loss is not None:
+        if dist_loss == 'cosine':
           dist_criterion = nn.CosineEmbeddingLoss()
-        elif loss == 'l2':
+        elif dist_loss == 'l2':
           dist_criterion = nn.MSELoss()
-        elif loss == 'l1':
+        elif dist_loss == 'l1':
           dist_criterion = nn.L1Loss()
         else:
           dist_criterion = None
