@@ -191,7 +191,7 @@ class owrIncremental(LearningWithoutForgetting):
 #################################################################
   def harmonic_test(self, classes_group_idx):
     open_test_accuracy, open_true_targets, open_predictions, open_unknown_targets, open_unknown_preds, open_unknown_values, open_all_values = self.test_openset(classes_group_idx)
-    closed_test_accuracy, closed_true_targets, closed_predictions, closed_only_unknown_targets, closed_unknown_preds, closed_unknown_values, closed_all_values = self.test_rejection(classes_group_idx)
+    closed_test_accuracy, closed_true_targets, closed_predictions, closed_unknown_targets, closed_unknown_preds, closed_unknown_values, closed_all_values = self.test_rejection(classes_group_idx)
     mean_acc = (open_test_accuracy + closed_test_accuracy)/2
     return mean_acc, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions, closed_predictions, open_unknown_targets, closed_unknown_targets, open_unknown_preds, closed_unknown_preds, open_unknown_values, closed_unknown_values, open_all_values, closed_all_values       
 
