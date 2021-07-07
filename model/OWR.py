@@ -7,7 +7,7 @@ from torch.utils.data import DataLoader, ConcatDataset
 import numpy as np
 from math import floor
 from copy import copy, deepcopy
-from model.lwf import LearningWithoutForgetting
+from model.icarl import iCarl
 from data.exemplar import Exemplar
 import random
 
@@ -15,21 +15,13 @@ from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection  import ParameterGrid
 
-class owrIncremental(LearningWithoutForgetting):
+class owrIncremental(iCarl):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode):
-    super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl)
-    self.BATCH_SIZE = BATCH_SIZE
-    self.VALIDATE = True
-
-    self.train_set = train_subset
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold):
+    super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
     
-    self.train_transform = train_transform
-    self.test_transform = test_transform
-    self.memory_size = 2000
-    self.exemplar_set = []
-    self.means = None
     self.test_mode = test_mode
+    self.threshold = p_threshold
   
   def train_model(self, num_epochs):
     
@@ -124,71 +116,7 @@ class owrIncremental(LearningWithoutForgetting):
     logs['predictions'] = predictions
     return logs
 
-########################################################################################################################
-  
-  def update_representation(self, classes_group_idx):
-    print(f"Length of exemplars set: {sum([len(self.exemplar_set[i]) for i in range(len(self.exemplar_set))])}")
-    exemplars = Exemplar(self.exemplar_set, self.train_transform)
-    ex_train_set = ConcatDataset([exemplars, self.train_set[classes_group_idx]])
-    
-    tmp_dl = DataLoader(ex_train_set,
-                        batch_size=self.BATCH_SIZE,
-                        shuffle=True, 
-                        num_workers=4,
-                        drop_last=True)
-    self.train_dl[classes_group_idx] = copy(tmp_dl)
-    
-  def reduce_exemplar_set(self):
-    m = floor(self.memory_size / self.net.fc.out_features)      
-    print(f"Target number of exemplars: {m}")
-
-    # from the current exemplar set, keep only first m
-    for i in range(len(self.exemplar_set)):
-      current_exemplar_set = self.exemplar_set[i]
-      self.exemplar_set[i] = current_exemplar_set[:m]
-    
-    return m
-  
-  def construct_exemplar_set(self, train_set, m):   
-    train_set.dataset.set_transform_status(False)    
-    samples = [[] for i in range(10)]
-    new_exemplar_set = [[] for i in range(10)]
-    for _, images, labels in train_set:
-      labels = labels % 10
-      samples[labels].append(images)
-    train_set.dataset.set_transform_status(True)
-    
-    new_exemplar_set = self.random_selection(samples, new_exemplar_set, m)
-    
-    self.exemplar_set.extend(new_exemplar_set)
-      
-  
-  def random_selection(self, samples, exemplars, m):
-    for i in range(10):
-      print(f"Randomly extracting exemplars from class {i} of current split... ", end="")
-      exemplars[i] = random.sample(samples[i], m)
-      print(f"Extracted {len(exemplars[i])} exemplars.")
-    return exemplars
-
-
-  def features_extractor(self, images, batch=True, transform=None):
-    assert not (batch is False and transform is None), "if a PIL image is passed to extract_features, a transform must be defined"
-    self.net.train(False)
-    if self.best_net is not None: self.best_net.train(False)
-    if self.old_net is not None: self.old_net.train(False)
-    
-    if batch is False:
-      images = transform(images)
-      images = images.unsqueeze(0)
-    images = images.to(self.DEVICE)
-    
-    if self.VALIDATE: features = self.best_net.features(images)
-    else: features = self.net.features(images)
-    if batch is False: features = features[0]
-    
-    return features
-  
-#################################################################
+################################################################
   def harmonic_test(self, classes_group_idx):
     open_test_accuracy, open_true_targets, open_predictions, open_unknown_targets, open_unknown_preds, open_unknown_values, open_all_values = self.test_openset(classes_group_idx)
     closed_test_accuracy, closed_true_targets, closed_predictions, closed_unknown_targets, closed_unknown_preds, closed_unknown_values, closed_all_values = self.test_rejection(classes_group_idx)
@@ -198,7 +126,7 @@ class owrIncremental(LearningWithoutForgetting):
   def test_openset(self,classes_group_idx):
     self.best_net.train(False)
     softmax = nn.Softmax(dim=1)
-    threshold = 0.5
+    threshold = self.threshold
     running_corrects = 0
     total = 0
 
@@ -252,7 +180,7 @@ class owrIncremental(LearningWithoutForgetting):
   def test_rejection(self, classes_group_idx):
       self.best_net.train(False)
       softmax = nn.Softmax(dim=1)
-      threshold = 0.5
+      threshold = self.threshold
       running_corrects = 0
       total = 0
 
