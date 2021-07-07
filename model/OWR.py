@@ -89,15 +89,35 @@ class owrIncremental(LearningWithoutForgetting):
         print(f"Testing openset: 50 clasess never seen, rejection accuracy: {test_accuracy}")
         print(f"{only_unknown_targets.size(0)} unkown found over {true_targets.size(0)} images unkown")
         logs['open_values'] = all_values
-      elif self.test_mode == "closed"
-        test_accuracy, true_targets, predictions, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values = self.test_rejection(g)
-        corrects_in_unknown = torch.sum(only_unknown_targets == only_unknown_preds).data.item()
-        print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
-        print(f"{only_unknown_targets.size()[0]} unkown found, {corrects_in_unknown} predictions of them where correct")
-        logs['closed_values'] = all_values
-      elif self.test_mode == "harmonic":
-             #harmonic test
-      
+      else:
+        if self.test_mode == "closed":
+          test_accuracy, true_targets, predictions, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values = self.test_rejection(g)
+          corrects_in_unknown = torch.sum(only_unknown_targets == only_unknown_preds).data.item()
+          print(f"Testing classes seen so far, accuracy: {test_accuracy:.2f}")
+          print(f"{only_unknown_targets.size()[0]} unkown found, {corrects_in_unknown} predictions of them where correct")
+          logs['closed_values'] = all_values
+        else:
+            if self.test_mode == "harmonic":
+              #test_accuracy is the mean_acc
+              test_accuracy,\
+              open_test_accuracy,\
+              closed_test_accuracy,\
+              open_true_targets,\
+              closed_true_targets,\
+              open_predictions,\
+              closed_predictions,
+              open_unknown_targets,\
+              closed_unknown_targets,\
+              open_unknown_preds,\
+              closed_unknown_preds,\
+              open_unknown_values,\
+              closed_unknown_values,\
+              open_all_values,\
+              closed_all_values = self.harmonic_test(g)
+              logs['open_values'][g] = open_all_values
+              logs['closed_values'][g] = closed_all_values
+              true_targets = torch.cat(open_true_targets.to(self.DEVICE), closed_true_targets.to(self.DEVICE)) 
+              predictions = torch.cat(open_predictions.to(self.DEVICE), closed_predictions.to(self.DEVICE))
       
       
       
@@ -110,7 +130,7 @@ class owrIncremental(LearningWithoutForgetting):
       logs['val_accuracies'][g] = validate_acc
       logs['test_accuracies'][g] = test_accuracy
 
-      if g < 9:
+      if g < 4:
         self.add_output_nodes()
         self.old_net = deepcopy(self.best_net)
 
@@ -183,6 +203,12 @@ class owrIncremental(LearningWithoutForgetting):
     return features
   
 #################################################################
+  def harmonic_test(self, classes_group_idx):
+    open_test_accuracy, open_true_targets, open_predictions, open_unknown_targets, open_unknown_preds, open_unknown_values, open_all_values = self.test_openset(classes_group_idx)
+    closed_test_accuracy, closed_true_targets, closed_predictions, closed_only_unknown_targets, closed_unknown_preds, closed_unknown_values, closed_all_values = self.test_rejection(classes_group_idx)
+    mean_acc = (open_test_accuracy + closed_test_accuracy)/2
+    return mean_acc, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions, closed_predictions, open_unknown_targets, closed_unknown_targets, open_unknown_preds, closed_unknown_preds, open_unknown_values, closed_unknown_values, open_all_values, closed_all_values       
+
   def test_openset(self,classes_group_idx):
     self.best_net.train(False)
     threshold = 0.5
