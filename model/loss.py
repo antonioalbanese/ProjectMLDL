@@ -11,7 +11,7 @@ from model.icarl import iCaRL
 from data.exemplar import Exemplar
 import random
 
-class iCaRL_Losses(iCaRL):
+class iCaRL_Loss(iCaRL):
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
   
