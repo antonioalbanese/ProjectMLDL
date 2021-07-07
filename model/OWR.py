@@ -66,7 +66,7 @@ class owrIncremental(LearningWithoutForgetting):
         
         validate_loss, validate_acc = self.validate(g)
         g_print = g + 1
-        print(f"Validation accuracy on group {g_print}/10: {validate_acc:.2f}")
+        print(f"Validation accuracy on group {g_print}/5: {validate_acc:.2f}")
         self.scheduler.step()
         
         if self.VALIDATE and validate_acc > best_acc:
