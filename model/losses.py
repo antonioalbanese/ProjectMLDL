@@ -125,13 +125,13 @@ class iCaRL_Loss(iCaRL):
     else:
       epoch_loss = running_loss/len(self.train_dl[classes_group_idx])
       epoch_acc = running_corrects/float(total)
-      print("traing_loss = {0}".format(epoch_loss))
+      #print("traing_loss = {0}".format(epoch_loss))
       
     return epoch_loss, epoch_acc
   
 ###############################################################################################################
   
-  def compute_loss(self, images, labels, num_classes, dist_criterion=None):
+  def compute_loss(self, images, labels, num_classes, dist_criterion):
     if dist_criterion is not None:
       class_criterion = nn.CrossEntropyLoss()
 
