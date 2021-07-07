@@ -246,7 +246,7 @@ class owrIncremental(LearningWithoutForgetting):
 
     else:
       accuracy = running_corrects / float(total)  
-    return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values, values
+    return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values
 
 
   def test_rejection(self, classes_group_idx):
@@ -297,4 +297,4 @@ class owrIncremental(LearningWithoutForgetting):
       else:
         accuracy = running_corrects / float(total)  
 
-      return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values, values
+      return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values
