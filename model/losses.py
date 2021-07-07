@@ -109,7 +109,7 @@ class iCaRL_Loss(iCaRL):
           dist_criterion = nn.L1Loss()
         else:
           dist_criterion = None
-        output, loss = self.compute_loss(images, labels, num_classes, dist_criterion)
+        output, loss = self.compute_loss(images, labels, num_classes, dist_loss, dist_criterion)
       else:
         one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
         output, loss = self.distill_loss(images, one_hot_labels, num_classes)
@@ -131,7 +131,7 @@ class iCaRL_Loss(iCaRL):
   
 ###############################################################################################################
   
-  def compute_loss(self, images, labels, num_classes, dist_criterion):
+  def compute_loss(self, images, labels, num_classes, dist_loss, dist_criterion):
     if dist_criterion is not None:
       class_criterion = nn.CrossEntropyLoss()
 
@@ -140,7 +140,7 @@ class iCaRL_Loss(iCaRL):
         sigmoid = nn.Sigmoid()
         old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]
         output = self.net(images)
-        if dist_criterion == nn.CosineEmbeddingLoss():
+        if dist_loss == 'cosine':
           dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output, torch.ones(images.shape[0]).to(self.DEVICE))
         else:
           dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output)
