@@ -73,7 +73,7 @@ class owrIncremental(iCaRL):
       print(f"Best accuracy found at epoch {be_print}: {best_acc:.2f}")
       
       m = self.reduce_exemplar_set()
-      self.construct_exemplar_set(self.train_set[g], m)
+      self.construct_exemplar_set(self.train_set[g], m, False)
       
       if self.test_mode == "open":
         test_accuracy, true_targets, predictions, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values = self.test_openset(g)
