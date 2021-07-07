@@ -99,21 +99,7 @@ class owrIncremental(LearningWithoutForgetting):
         else:
             if self.test_mode == "harmonic":
               #test_accuracy is the mean_acc
-              test_accuracy,\
-              open_test_accuracy,\
-              closed_test_accuracy,\
-              open_true_targets,\
-              closed_true_targets,\
-              open_predictions,\
-              closed_predictions,
-              open_unknown_targets,\
-              closed_unknown_targets,\
-              open_unknown_preds,\
-              closed_unknown_preds,\
-              open_unknown_values,\
-              closed_unknown_values,\
-              open_all_values,\
-              closed_all_values = self.harmonic_test(g)
+              test_accuracy,open_test_accuracy,closed_test_accuracy,open_true_targets,closed_true_targets,open_predictions,closed_predictions,open_unknown_targets,closed_unknown_targets,open_unknown_preds,closed_unknown_preds,open_unknown_values,closed_unknown_values,open_all_values,closed_all_values = self.harmonic_test(g)
               logs['open_values'][g] = open_all_values
               logs['closed_values'][g] = closed_all_values
               true_targets = torch.cat(open_true_targets.to(self.DEVICE), closed_true_targets.to(self.DEVICE)) 
