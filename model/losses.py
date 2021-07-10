@@ -99,9 +99,6 @@ class iCaRL_Loss(iCaRL):
       labels = labels.to(self.DEVICE)
 
       num_classes = self.net.fc.out_features
-      num_old_classes = len(self.exemplar_set)
-      num_new_classes = num_classes - num_old_classes
-      lamda = weight * np.sqrt(num_new_classes/num_old_classes)
       
       if dist_loss is not None:
         if dist_loss == 'cosine':
@@ -114,10 +111,10 @@ class iCaRL_Loss(iCaRL):
           dist_criterion = None
         if feat is False:
           # Compute the loss between the outputs of the fully-connected layer
-          output, loss = self.compute_loss(images, labels, num_classes, dist_loss, dist_criterion, lamda)
+          output, loss = self.compute_loss(images, labels, num_classes, dist_loss, dist_criterion, weight)
         else:
           # Compute the loss among the extracted features
-          output, loss = self.compute_loss_features(images, labels, num_classes, dist_loss, dist_criterion, lamda)
+          output, loss = self.compute_loss_features(images, labels, num_classes, dist_loss, dist_criterion, weight)
       else:
         one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
         output, loss = self.distill_loss(images, one_hot_labels, num_classes)
@@ -167,7 +164,11 @@ class iCaRL_Loss(iCaRL):
     if dist_criterion is not None:
       class_criterion = nn.CrossEntropyLoss()
 
-      if self.old_net is not None:
+      if self.old_net is not None:      
+        num_old_classes = len(self.exemplar_set)
+        num_new_classes = num_classes - num_old_classes
+        lamda = weight * np.sqrt(num_new_classes/num_old_classes)
+        
         self.old_net.to(self.DEVICE)
         output = self.net(images)
         old_features = self.old_net.features(images)
@@ -179,7 +180,7 @@ class iCaRL_Loss(iCaRL):
         else:
           dist_loss = dist_criterion(new_features, old_features)
         class_loss = class_criterion(output, labels)
-        loss = weight*dist_loss + class_loss
+        loss = lamda*dist_loss + class_loss
 
       else:
         output = self.net(images)
