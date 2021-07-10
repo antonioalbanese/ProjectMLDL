@@ -99,6 +99,9 @@ class iCaRL_Loss(iCaRL):
       labels = labels.to(self.DEVICE)
 
       num_classes = self.net.fc.out_features
+      num_old_classes = len(self.exemplar_set)
+      num_new_classes = num_classes - num_old_classes
+      weight = weight * np.sqrt(num_new_classes/num_old_classes)
       
       if dist_loss is not None:
         if dist_loss == 'cosine':
