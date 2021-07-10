@@ -101,7 +101,7 @@ class iCaRL_Loss(iCaRL):
       num_classes = self.net.fc.out_features
       num_old_classes = len(self.exemplar_set)
       num_new_classes = num_classes - num_old_classes
-      weight = weight * np.sqrt(num_new_classes/num_old_classes)
+      lamda = weight * np.sqrt(num_new_classes/num_old_classes)
       
       if dist_loss is not None:
         if dist_loss == 'cosine':
@@ -114,10 +114,10 @@ class iCaRL_Loss(iCaRL):
           dist_criterion = None
         if feat is False:
           # Compute the loss between the outputs of the fully-connected layer
-          output, loss = self.compute_loss(images, labels, num_classes, dist_loss, dist_criterion, weight)
+          output, loss = self.compute_loss(images, labels, num_classes, dist_loss, dist_criterion, lamda)
         else:
           # Compute the loss among the extracted features
-          output, loss = self.compute_loss_features(images, labels, num_classes, dist_loss, dist_criterion, weight)
+          output, loss = self.compute_loss_features(images, labels, num_classes, dist_loss, dist_criterion, lamda)
       else:
         one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
         output, loss = self.distill_loss(images, one_hot_labels, num_classes)
@@ -153,7 +153,7 @@ class iCaRL_Loss(iCaRL):
         else:
           dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output)
         class_loss = class_criterion(output, labels)
-        loss = weight*dist_loss + class_loss
+        loss = dist_loss + class_loss
 
       else:
         output = self.net(images)
