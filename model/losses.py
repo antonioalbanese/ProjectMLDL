@@ -15,7 +15,7 @@ class iCaRL_Loss(iCaRL):
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
   
-  def train_model(self, num_epochs, loss):
+  def train_model(self, num_epochs, loss, weight, feat):
     
     cudnn.benchmark
     
@@ -42,7 +42,7 @@ class iCaRL_Loss(iCaRL):
       self.update_representation(g)
 
       for epoch in range(num_epochs):
-        e_loss, e_acc = self.train_epoch(g, loss)
+        e_loss, e_acc = self.train_epoch(g, loss, weight, feat)
         e_print = epoch + 1
         print(f"Epoch {e_print}/{num_epochs} LR: {self.scheduler.get_last_lr()}")
         
@@ -84,7 +84,7 @@ class iCaRL_Loss(iCaRL):
     logs['predictions'] = predictions
     return logs
   
-  def train_epoch(self, classes_group_idx, dist_loss):
+  def train_epoch(self, classes_group_idx, dist_loss, weight, feat):
     self.net.train()
     if self.old_net is not None: self.old_net.train(False)
     if self.best_net is not None: self.best_net.train(False)
@@ -109,7 +109,12 @@ class iCaRL_Loss(iCaRL):
           dist_criterion = nn.L1Loss()
         else:
           dist_criterion = None
-        output, loss = self.compute_loss(images, labels, num_classes, dist_loss, dist_criterion)
+        if feat is False:
+          # Compute the loss between the outputs of the fully-connected layer
+          output, loss = self.compute_loss(images, labels, num_classes, dist_loss, dist_criterion, weight)
+        else:
+          # Compute the loss among the extracted features
+          output, loss = self.compute_loss_features(images, labels, num_classes, dist_loss, dist_criterion, weight)
       else:
         one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
         output, loss = self.distill_loss(images, one_hot_labels, num_classes)
@@ -131,7 +136,7 @@ class iCaRL_Loss(iCaRL):
   
 ###############################################################################################################
   
-  def compute_loss(self, images, labels, num_classes, dist_loss, dist_criterion):
+  def compute_loss(self, images, labels, num_classes, dist_loss, dist_criterion, weight):
     if dist_criterion is not None:
       class_criterion = nn.CrossEntropyLoss()
 
@@ -144,13 +149,41 @@ class iCaRL_Loss(iCaRL):
           dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output, torch.ones(images.shape[0]).to(self.DEVICE))
         else:
           dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output)
-        class_loss = class_criterion(output,labels)
-        loss = dist_loss + class_loss
+        class_loss = class_criterion(output, labels)
+        loss = weight*dist_loss + class_loss
 
       else:
         output = self.net(images)
-        loss = class_criterion(output,labels)      
+        loss = class_criterion(output, labels)      
     else:
       one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
       output, loss = self.distill_loss(images, one_hot_labels, num_classes)   
     return output, loss
+  
+  def compute_loss_features(self, images, labels, num_classes, dist_loss, dist_criterion, weight):
+    if dist_criterion is not None:
+      class_criterion = nn.CrossEntropyLoss()
+
+      if self.old_net is not None:
+        self.old_net.to(self.DEVICE)
+        output = self.net(images)
+        old_features = self.old_net.features(images)
+        old_features = nn.functional.normalize(old_features, p=2, dim=1)
+        new_features = self.net.features(images)
+        new_features = nn.functional.normalize(new_features, p=2, dim=1)
+        if dist_loss == 'cosine':
+          dist_loss = dist_criterion(new_features, old_features, torch.ones(images.shape[0]).to(self.DEVICE))
+        else:
+          dist_loss = dist_criterion(new_features, old_features)
+        class_loss = class_criterion(output, labels)
+        loss = weight*dist_loss + class_loss
+
+      else:
+        output = self.net(images)
+        loss = class_criterion(output, labels)      
+    else:
+      one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
+      output, loss = self.distill_loss(images, one_hot_labels, num_classes)   
+    return output, loss
+    
+    
