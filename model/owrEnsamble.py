@@ -147,7 +147,7 @@ class owrEnsemble(iCaRL):
         labels = labels.to(self.DEVICE)
         total += labels.size(0)
 
-        outputs = ensemble.predict(images)
+        outputs = ensemble.predict(images, verb=True)
 
         values, preds = torch.max(outputs.data, 1)
         all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
@@ -197,7 +197,7 @@ class owrEnsemble(iCaRL):
         labels = labels.to(self.DEVICE)
         total += labels.size(0)
 
-        outputs = ensemble.predict(images)
+        outputs = ensemble.predict(images, verb=True)
 
         values, preds = torch.max(outputs.data, 1)
         all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
