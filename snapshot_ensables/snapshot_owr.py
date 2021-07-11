@@ -271,7 +271,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                 optimizer = self._clip_lr(optimizer, lr_clip)
 
                 optimizer.zero_grad()
-                output = estimator(*data)
+                output = estimator(data)
                 #loss = criterion(output, target)
                 
 
