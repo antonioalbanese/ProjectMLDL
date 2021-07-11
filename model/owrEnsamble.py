@@ -97,10 +97,10 @@ class owrEnsemble(iCaRL):
       print("")
       print("=============================================")
       print("")
-      logs['group_train_loss'][g] = e_loss
-      logs['group_train_accuracies'][g] = e_acc
-      logs['val_losses'][g] = validate_loss
-      logs['val_accuracies'][g] = validate_acc
+      #logs['group_train_loss'][g] = e_loss
+      #logs['group_train_accuracies'][g] = e_acc
+      #logs['val_losses'][g] = validate_loss
+      #logs['val_accuracies'][g] = validate_acc
       logs['test_accuracies'][g] = test_accuracy
 
       if g < 4:
