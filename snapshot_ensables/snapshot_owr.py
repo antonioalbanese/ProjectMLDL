@@ -164,7 +164,6 @@ class _BaseSnapshotEnsemble(BaseModule):
         """
         # Average
         results = [estimator(*x) for estimator in self.estimators_]
-        print(results[0].size())
         output = op.average(results)
 
         return output
