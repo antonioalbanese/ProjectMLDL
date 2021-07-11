@@ -13,6 +13,7 @@ import random
 
 #SnapshotEnsembleOWRClassifier
 from snapshot_ensables.snapshot_owr import SnapshotEnsembleOWRClassifier
+from snapshot_ensables.utils import set_logger
 
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
@@ -42,6 +43,11 @@ class owrEnsemble(iCaRL):
              'closed_values': [float for j in range(5)]}
 
     ensemble = SnapshotEnsembleOWRClassifier(estimator=self.net, n_estimators=self.n_estimators, estimator_args=None, cuda=True)
+    ensemble.set_optimizer('SGD',             # parameter optimizer
+                    lr=self.START_LR,            # learning rate of the optimizer
+                    weight_decay=self.WEIGHT_DECAY,
+                    momentum=self.MOMENTUM)  # weight decay of the optimizer
+    logger = set_logger('classification_mnist_mlp')
     
     for g in range(5):
       self.net.to(self.DEVICE)
@@ -49,6 +55,7 @@ class owrEnsemble(iCaRL):
       self.parameters_to_optimize = self.net.parameters()
       self.optimizer = optim.SGD(self.parameters_to_optimize, lr=self.START_LR, momentum=self.MOMENTUM, weight_decay=self.WEIGHT_DECAY)
       self.scheduler = optim.lr_scheduler.MultiStepLR(self.optimizer, milestones=self.MILESTONES, gamma=self.GAMMA)
+      
       
 
       
