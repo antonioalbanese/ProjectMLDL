@@ -364,7 +364,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                             acc,
                             len(self.estimators_),
                         )
-
+        self.estimators_ = nn.ModuleList()
+        self.old_ensemble = deepcopy(self)
         if save_model and not test_loader:
             io.save(self, save_dir, self.logger)
 
