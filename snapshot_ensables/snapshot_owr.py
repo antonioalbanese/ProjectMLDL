@@ -106,6 +106,7 @@ class _BaseSnapshotEnsemble(BaseModule):
 
         self.estimators_ = nn.ModuleList()
         self.best_ensamble = None
+        self.old_ensable = None
 
     def _validate_parameters(self, lr_clip, epochs, log_interval):
         """Validate hyper-parameters on training the ensemble."""
