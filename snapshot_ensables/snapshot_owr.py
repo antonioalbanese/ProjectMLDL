@@ -276,7 +276,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                 
 
 
-                loss = compute_loss(output, data, target, classes_group_idx)
+                loss = self.compute_loss(output, data, target, classes_group_idx)
                 loss.backward()
 
                 optimizer.step()
