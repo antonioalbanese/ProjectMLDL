@@ -259,9 +259,12 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         # Training loop
         estimator.train()
         for epoch in range(epochs):
-            for batch_idx, elem in enumerate(train_loader):
+                
+            for batch_idx, (_,data,target) in enumerate(train_loader):
+                data = data.to(self.DEVICE)
+                target = target.to(self.DEVICE)
 
-                data, target = io.split_data_target(elem, self.device)
+                #_, data, target = io.split_data_target(elem, self.device)
                 batch_size = data[0].size(0)
 
                 # Clip the learning rate
@@ -329,8 +332,10 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                 with torch.no_grad():
                     correct = 0
                     total = 0
-                    for _, elem in enumerate(test_loader):
-                        data, target = io.split_data_target(elem, self.device)
+                    for _,data,target in test_loader:
+                        data = data.to(self.DEVICE)
+                        target = target.to(self.DEVICE)
+                        #data, target = io.split_data_target(elem, self.device)
                         output = self.forward(*data)
                         _, predicted = torch.max(output.data, 1)
                         correct += (predicted == target).sum().item()
