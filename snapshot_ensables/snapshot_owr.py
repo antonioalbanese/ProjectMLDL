@@ -158,15 +158,15 @@ class _BaseSnapshotEnsemble(BaseModule):
             self.logger.error(msg.format(epochs, self.n_estimators))
             raise ValueError(msg.format(epochs, self.n_estimators))
 
-    def _forward(self, *x, verb = False):
+    def _forward(self, *x):
         """
         Implementation on the internal data forwarding in snapshot ensemble.
         """
         # Average
         results = [estimator(*x) for estimator in self.estimators_]
-        if verb == True: 
-          for res in results:
-            print(res.size())
+        for res in results:
+          print(res.size())
+          
         output = op.average(results)
 
         return output
@@ -374,8 +374,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         return super().evaluate(test_loader, return_loss)
 
     @torchensemble_model_doc(item="predict")
-    def predict(self, *x, verb = False):
-        return super().predict(*x, verb)
+    def predict(self, *x):
+        return super().predict(*x)
 
     ############################################################
     def compute_loss(self, output, images, labels, classes_group_idx):
