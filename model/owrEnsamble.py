@@ -41,7 +41,7 @@ class owrEnsemble(iCaRL):
              'open_values': [float for j in range(5)],
              'closed_values': [float for j in range(5)]}
 
-    ensemble = SnapshotEnsembleOWRClassifier(estimator=self.net, self.n_estimators, estimator_args=None, cuda=True)
+    ensemble = SnapshotEnsembleOWRClassifier(estimator=self.net, n_estimators=self.n_estimators, estimator_args=None, cuda=True)
     
     for g in range(5):
       self.net.to(self.DEVICE)
