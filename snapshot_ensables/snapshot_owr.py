@@ -242,6 +242,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
     ):
         self._validate_parameters(lr_clip, epochs, log_interval)
         self.n_outputs = self._decide_n_outputs(train_loader)
+        self.estimators_ = nn.ModuleList()
 
         estimator = self._make_estimator()
 
@@ -364,7 +365,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                             acc,
                             len(self.estimators_),
                         )
-        self.estimators_ = nn.ModuleList()
+        
         self.old_ensemble = deepcopy(self)
         if save_model and not test_loader:
             io.save(self, save_dir, self.logger)
