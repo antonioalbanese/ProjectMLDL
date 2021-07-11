@@ -56,11 +56,11 @@ class owrEnsemble(iCaRL):
       # augment train_set with exemplars and define DataLoaders for the current group
       self.update_representation(g)
 
-      ensemble.fit(train_dl[g],
+      ensemble.fit(self.train_dl[g],
                    lr_clip=None,
                    epochs=num_epochs,
                    log_interval=num_epochs,
-                   test_loader=validation_dl[g],
+                   test_loader=self.validation_dl[g],
                    save_model=False,
                    save_dir=None,
                    classes_group_idx = g)
