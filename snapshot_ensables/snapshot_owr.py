@@ -337,7 +337,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                         data = data.to(self.device)
                         target = target.to(self.device)
                         #data, target = io.split_data_target(elem, self.device)
-                        output = self.forward(*data)
+                        output = self.forward(data)
                         _, predicted = torch.max(output.data, 1)
                         correct += (predicted == target).sum().item()
                         total += target.size(0)
