@@ -158,13 +158,15 @@ class _BaseSnapshotEnsemble(BaseModule):
             self.logger.error(msg.format(epochs, self.n_estimators))
             raise ValueError(msg.format(epochs, self.n_estimators))
 
-    def _forward(self, *x):
+    def _forward(self, *x, verb = False):
         """
         Implementation on the internal data forwarding in snapshot ensemble.
         """
         # Average
         results = [estimator(*x) for estimator in self.estimators_]
-        print(results)
+        if verb == True: 
+          for res in results:
+            print(res.size())
         output = op.average(results)
 
         return output
