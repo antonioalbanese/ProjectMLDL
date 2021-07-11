@@ -13,7 +13,7 @@ import random
 
 #SnapshotEnsembleOWRClassifier
 from snapshot_ensables.snapshot_owr import SnapshotEnsembleOWRClassifier
-from snapshot_ensables.utils import set_logger
+from snapshot_ensables.utils.logging import set_logger
 
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
