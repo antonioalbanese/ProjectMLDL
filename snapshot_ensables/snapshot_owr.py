@@ -387,7 +387,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         class_criterion = nn.CrossEntropyLoss()
         dist_criterion = nn.CosineEmbeddingLoss()
         if self.old_ensemble is not None:
-            self.old_ensable.eval()
+            self.old_ensemble.eval()
             self.old_ensemble.to(self.device)    
             sigmoid = nn.Sigmoid()
             old_net_output = sigmoid(self.old_ensemble(images))[:, :num_classes-10]
