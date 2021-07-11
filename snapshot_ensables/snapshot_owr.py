@@ -105,8 +105,8 @@ class _BaseSnapshotEnsemble(BaseModule):
         self.tb_logger = get_tb_logger()
 
         self.estimators_ = nn.ModuleList()
-        self.best_ensamble = None
-        self.old_ensable = None
+        self.best_ensemble = None
+        self.old_ensemble = None
 
     def _validate_parameters(self, lr_clip, epochs, log_interval):
         """Validate hyper-parameters on training the ensemble."""
@@ -345,7 +345,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
 
                     if acc > best_acc:
                         best_acc = acc
-                        self.best_ensamble = deepcopy(self)
+                        self.best_ensemble = deepcopy(self)
                         if save_model:
                             io.save(self, save_dir, self.logger)
 
@@ -379,10 +379,10 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         num_classes = classes_group_idx*10+10
         class_criterion = nn.CrossEntropyLoss()
         dist_criterion = nn.CosineEmbeddingLoss()
-        if self.old_ensamble is not None:
-            self.old_ensamble.to(self.DEVICE)    
+        if self.old_ensemble is not None:
+            self.old_ensemble.to(self.device)    
             sigmoid = nn.Sigmoid()
-            old_net_output = sigmoid(self.old_ensamble(images))[:, :num_classes-10]
+            old_net_output = sigmoid(self.old_ensemble(images))[:, :num_classes-10]
             dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output)
             class_loss = class_criterion(output, labels)
             loss = dist_loss + class_loss
