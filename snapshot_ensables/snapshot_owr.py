@@ -374,8 +374,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         return super().evaluate(test_loader, return_loss)
 
     @torchensemble_model_doc(item="predict")
-    def predict(self, *x):
-        return super().predict(*x)
+    def predict(self, *x, verb = False):
+        return super().predict(*x, verb)
 
     ############################################################
     def compute_loss(self, output, images, labels, classes_group_idx):
