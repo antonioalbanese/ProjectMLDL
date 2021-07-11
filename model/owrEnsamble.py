@@ -73,7 +73,7 @@ class owrEnsemble(iCaRL):
                    classes_group_idx = g)
 
         
-      print(f"Group {g_print} Finished!")
+      print(f"Group {g+1} Finished!")
       
       
       m = self.reduce_exemplar_set()
