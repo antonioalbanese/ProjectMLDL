@@ -152,7 +152,7 @@ class owrEnsemble(iCaRL):
         all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
         below_mask = values < threshold
         unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
-        preds_with_unknown = torch.where(below_mask, torch.tensor(unknowkn_class).to(self.DEVICE), preds)
+        preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         only_unknown_preds_batch = preds[below_mask]
         only_unknown_targets_batch = labels[below_mask]
         only_unknown_values_batch = values[below_mask]
