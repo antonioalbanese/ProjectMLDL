@@ -377,8 +377,6 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
 
     @torchensemble_model_doc(item="predict")
     def predict(self, *x):
-        for est in self.estimators_:
-          print(est.fc.out_features)
         return super().predict(*x)
 
     ############################################################
