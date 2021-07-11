@@ -268,7 +268,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                 target = target.to(self.device)
 
                 #_, data, target = io.split_data_target(elem, self.device)
-                batch_size = data[0].size(0)
+                batch_size = data.size(0)
 
                 # Clip the learning rate
                 optimizer = self._clip_lr(optimizer, lr_clip)
