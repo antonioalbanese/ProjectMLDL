@@ -7,8 +7,8 @@ import numpy as np
 import torch.nn as nn
 
 from . import _constants as const
-from .utils.io import split_data_target
-from .utils.logging import get_tb_logger
+from utils.io import split_data_target
+from utils.logging import get_tb_logger
 
 
 def torchensemble_model_doc(header="", item="model"):
