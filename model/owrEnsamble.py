@@ -11,6 +11,9 @@ from model.icarl import iCaRL
 from data.exemplar import Exemplar
 import random
 
+#SnapshotEnsembleOWRClassifier
+from snapshot_ensables.snapshot_owr import SnapshotEnsembleOWRClassifier
+
 from sklearn.svm import SVC
 from sklearn.metrics import accuracy_score
 from sklearn.model_selection  import ParameterGrid
@@ -38,7 +41,7 @@ class owrEnsemble(iCaRL):
              'open_values': [float for j in range(5)],
              'closed_values': [float for j in range(5)]
 
-    ensemble = SnapshotEnsembleOWRClassifier(self.net, self.n_estimators, estimator_args=None, cuda=True)
+    ensemble = SnapshotEnsembleOWRClassifier(estimator=self.net, self.n_estimators, estimator_args=None, cuda=True)
     
     for g in range(5):
       self.net.to(self.DEVICE)
