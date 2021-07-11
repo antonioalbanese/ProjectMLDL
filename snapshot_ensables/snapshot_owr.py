@@ -383,7 +383,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
             self.old_ensemble.to(self.device)    
             sigmoid = nn.Sigmoid()
             old_net_output = sigmoid(self.old_ensemble(images))[:, :num_classes-10]
-            dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output)
+            dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output, torch.ones(images.shape[0]).to(self.DEVICE))
             class_loss = class_criterion(output, labels)
             loss = dist_loss + class_loss
         else:
