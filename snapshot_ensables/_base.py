@@ -169,7 +169,7 @@ class BaseModule(nn.Module):
         """
 
     @torch.no_grad()
-    def predict(self, *x):
+    def predict(self, *x, verb = False):
         """Docstrings decorated by downstream ensembles."""
         self.eval()
 
@@ -187,7 +187,7 @@ class BaseModule(nn.Module):
                 )
                 raise ValueError(msg)
 
-        pred = self.forward(*x_device)
+        pred = self.forward(*x_device, verb)
         pred = pred.cpu()
         return pred
 
