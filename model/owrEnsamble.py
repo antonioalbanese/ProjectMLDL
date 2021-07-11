@@ -39,7 +39,7 @@ class owrEnsemble(iCaRL):
              'val_accuracies': [float for j in range(5)],
              'val_losses': [float for j in range(5)],
              'open_values': [float for j in range(5)],
-             'closed_values': [float for j in range(5)]
+             'closed_values': [float for j in range(5)]}
 
     ensemble = SnapshotEnsembleOWRClassifier(estimator=self.net, self.n_estimators, estimator_args=None, cuda=True)
     
