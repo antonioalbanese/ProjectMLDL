@@ -261,8 +261,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         for epoch in range(epochs):
                 
             for batch_idx, (_,data,target) in enumerate(train_loader):
-                data = data.to(self.DEVICE)
-                target = target.to(self.DEVICE)
+                data = data.to(self.device)
+                target = target.to(self.device)
 
                 #_, data, target = io.split_data_target(elem, self.device)
                 batch_size = data[0].size(0)
@@ -333,8 +333,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
                     correct = 0
                     total = 0
                     for _,data,target in test_loader:
-                        data = data.to(self.DEVICE)
-                        target = target.to(self.DEVICE)
+                        data = data.to(self.device)
+                        target = target.to(self.device)
                         #data, target = io.split_data_target(elem, self.device)
                         output = self.forward(*data)
                         _, predicted = torch.max(output.data, 1)
