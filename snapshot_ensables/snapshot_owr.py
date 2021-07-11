@@ -375,7 +375,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         return super().predict(*x)
 
     ############################################################
-    def compute_loss(self, output, data, target, classes_group_idx):
+    def compute_loss(self, output, images, labels, classes_group_idx):
         num_classes = classes_group_idx*10+10
         class_criterion = nn.CrossEntropyLoss()
         dist_criterion = nn.CosineEmbeddingLoss()
