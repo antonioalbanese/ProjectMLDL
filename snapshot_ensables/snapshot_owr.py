@@ -105,7 +105,6 @@ class _BaseSnapshotEnsemble(BaseModule):
         self.tb_logger = get_tb_logger()
 
         self.estimators_ = nn.ModuleList()
-        self.best_ensemble = None
         self.old_ensemble = None
 
     def _validate_parameters(self, lr_clip, epochs, log_interval):
@@ -349,7 +348,6 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
 
                     if acc > best_acc:
                         best_acc = acc
-                        self.best_ensemble = deepcopy(self)
                         if save_model:
                             io.save(self, save_dir, self.logger)
 
