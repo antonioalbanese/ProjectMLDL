@@ -86,7 +86,9 @@ class owrEnsemble(iCaRL):
       for k in range(len(open_true_targets)):
         predictions.append(torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE))))
       print(open_true_targets)
-      print(f"Testing on both open and closed world, harmonic mean acc: {test_accuracy:.2f}")
+      print(f"Testing on both open and closed world")
+      for en,acc in enumerate(test_accuracies):
+        print(f"owr harmonic mean (threshold:{self.threshold_list[en]}) = {acc}")
       
       
       print("")
