@@ -404,7 +404,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
             sqr_results.append(torch.square(F.softmax(tens, dim=1)))
         print(sqr_results, sqr_results.size())
         variances = sum(sqr_results)/len(results) - torch.square(output)
-        print(variances,  variances.size())
+        print(variances,  variances[0].size(), variances[1].size(), variances[2].size(), variances[3].size(), variances[4].size() )
         
         return output, variances
 
