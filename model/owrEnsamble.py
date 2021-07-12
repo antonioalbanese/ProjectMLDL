@@ -122,6 +122,8 @@ class owrEnsemble(iCaRL):
     threshold_list = self.threshold_list
     running_corrects = 0
     total = 0
+    unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+    
 
     all_preds = torch.tensor([])
     all_preds = all_preds.type(torch.LongTensor)
@@ -171,6 +173,8 @@ class owrEnsemble(iCaRL):
     threshold_list = self.threshold_list
     running_corrects = 0
     total = 0
+    unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+    
 
     all_preds = torch.tensor([])
     all_preds = all_preds.type(torch.LongTensor)
