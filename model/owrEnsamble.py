@@ -143,7 +143,11 @@ class owrEnsemble(iCaRL):
       outputs, variances = ensemble.predict_with_variance(images)
 
       values, preds = torch.max(outputs.data, 1)
-      pred_vars = variances[preds] 
+      pred_vars = torch.tensor([])
+      pred_vars = pred_vars.type(torch.DoubleTensor)
+
+      for en,pred in enumerate(preds):
+        pred_vars = torch.cat((pred_vars, torch.tensor([variances[en,pred]])))
 
       all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
@@ -185,7 +189,12 @@ class owrEnsemble(iCaRL):
       outputs, variances = ensemble.predict_with_variance(images)
 
       values, preds = torch.max(outputs.data, 1)
-      pred_vars = variances[preds] 
+      pred_vars = torch.tensor([])
+      pred_vars = pred_vars.type(torch.DoubleTensor)
+
+      for en,pred in enumerate(preds):
+        pred_vars = torch.cat((pred_vars, torch.tensor([variances[en,pred]])))
+      
 
       all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
