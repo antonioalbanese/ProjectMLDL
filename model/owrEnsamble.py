@@ -10,6 +10,7 @@ from copy import copy, deepcopy
 from model.icarl import iCaRL
 from data.exemplar import Exemplar
 import random
+from math import sqrt
 
 #SnapshotEnsembleOWRClassifier
 from snapshot_ensables.snapshot_owr import SnapshotEnsembleOWRClassifier
