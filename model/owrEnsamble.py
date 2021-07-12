@@ -82,9 +82,11 @@ class owrEnsemble(iCaRL):
       test_accuracies,open_test_accuracies,closed_test_accuracies,open_true_targets,closed_true_targets,open_predictions,closed_predictions,open_all_values,closed_all_values = self.harmonic_test(g, ensemble)
       logs['open_values'][g] = open_all_values
       logs['closed_values'][g] = closed_all_values
+      predictions = []
+      true_targets = []
       for k in range(len(open_true_targets)):
-        true_targets = torch.cat((open_true_targets[k].to(self.DEVICE), closed_true_targets[k].to(self.DEVICE))) 
-        predictions = torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE)))
+        true_targets.append(torch.cat((open_true_targets[k].to(self.DEVICE), closed_true_targets[k].to(self.DEVICE))))
+        predictions.append(torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE))))
       print(f"Testing on both open and closed world, harmonic mean acc: {test_accuracy:.2f}")
       
       
