@@ -116,7 +116,7 @@ class owrEnsemble(iCaRL):
       mean_accs = []
       open_test_accuracy, open_true_targets, open_predictions_list, open_all_values= self.test_openset(classes_group_idx, ensemble)
       closed_test_accuracy, closed_true_targets, closed_predictions_list, closed_all_values = self.test_rejection(classes_group_idx, ensemble)
-      
+      print(f"{open_test_accuracy},{closed_test_accuracy}")
       for n in range(len(open_test_accuracy)):
         mean_acc = 1/((1/open_test_accuracy[n] + 1/closed_test_accuracy[n])/2)
         mean_accs.append(mean_acc)
