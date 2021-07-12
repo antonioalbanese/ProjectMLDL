@@ -80,6 +80,7 @@ class owrEnsemble(iCaRL):
 
       #test_accuracies contain mean_acc for different thresholds
       test_accuracies,open_test_accuracies,closed_test_accuracies,open_true_targets,closed_true_targets,open_predictions,closed_predictions,open_all_values,closed_all_values = self.harmonic_test(g, ensemble)
+      true_targets = torch.cat((closed_true_targets.to(self.DEVICE), open_true_targets.to(self.DEVICE)))
       logs['open_values'][g] = open_all_values
       logs['closed_values'][g] = closed_all_values
       predictions = []
