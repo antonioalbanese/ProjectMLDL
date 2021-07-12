@@ -36,7 +36,7 @@ class owrEnsemble(iCaRL):
     logs = {
              'predictions': [],
              'test_accuracies': [[] for j in range(5)],
-             'true_labels': [int],
+             'true_labels': [],
              'open_values': [float for j in range(5)],
              'closed_values': [float for j in range(5)]}
 
@@ -82,8 +82,9 @@ class owrEnsemble(iCaRL):
       test_accuracies,open_test_accuracies,closed_test_accuracies,open_true_targets,closed_true_targets,open_predictions,closed_predictions,open_all_values,closed_all_values = self.harmonic_test(g, ensemble)
       logs['open_values'][g] = open_all_values
       logs['closed_values'][g] = closed_all_values
-      true_targets = torch.cat((open_true_targets.to(self.DEVICE), closed_true_targets.to(self.DEVICE))) 
-      predictions = torch.cat((open_predictions.to(self.DEVICE), closed_predictions.to(self.DEVICE)))
+      for k in range(len(open_true_targets)):
+        true_targets = torch.cat((open_true_targets[k].to(self.DEVICE), closed_true_targets[k].to(self.DEVICE))) 
+        predictions = torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE)))
       print(f"Testing on both open and closed world, harmonic mean acc: {test_accuracy:.2f}")
       
       
@@ -107,14 +108,15 @@ class owrEnsemble(iCaRL):
 
 
   def harmonic_test(self, classes_group_idx, ensemble):
-    ensemble.train(False)
-    mean_accs = []
-    open_test_accuracy, open_true_targets, open_predictions_list, open_all_values= self.test_openset(classes_group_idx, ensemble)
-    closed_test_accuracy, closed_true_targets, closed_predictions_list, closed_all_values = self.test_rejection(classes_group_idx, ensemble)
-    
-    for n in range(len(open_test_accuracy)):
-      mean_acc = 1/((1/open_test_accuracy[n] + 1/closed_test_accuracy[n])/2)
-      mean_accs.append(mean_acc)
+    with torch.no_grad:
+      ensemble.train(False)
+      mean_accs = []
+      open_test_accuracy, open_true_targets, open_predictions_list, open_all_values= self.test_openset(classes_group_idx, ensemble)
+      closed_test_accuracy, closed_true_targets, closed_predictions_list, closed_all_values = self.test_rejection(classes_group_idx, ensemble)
+      
+      for n in range(len(open_test_accuracy)):
+        mean_acc = 1/((1/open_test_accuracy[n] + 1/closed_test_accuracy[n])/2)
+        mean_accs.append(mean_acc)
 
     return mean_accs, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions_list, closed_predictions_list, open_all_values, closed_all_values       
 
