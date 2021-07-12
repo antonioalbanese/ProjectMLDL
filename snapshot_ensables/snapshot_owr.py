@@ -323,8 +323,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
             if counter % n_iters_per_estimator == 0:
 
                 # Generate and save the snapshot
-                snapshot = self._make_estimator()
-                snapshot.load_state_dict(estimator.state_dict()).to(self.device)
+                snapshot = self._make_estimator().to(self.device)
+                snapshot.load_state_dict(estimator.state_dict())
                 self.estimators_.append(snapshot)
 
                 msg = "Save the snapshot model with index: {}"
