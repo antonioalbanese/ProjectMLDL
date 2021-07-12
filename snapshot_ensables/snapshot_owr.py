@@ -380,8 +380,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
     ############################################################
     def compute_loss(self, output, images, labels, classes_group_idx):
         num_classes = classes_group_idx*10+10
-        class_criterion = nn.CrossEntropyLoss()
-        dist_criterion = nn.CosineEmbeddingLoss()
+        class_criterion = nn.CrossEntropyLoss().to(self.device)
+        dist_criterion = nn.CosineEmbeddingLoss().to(self.device)
         if self.old_ensemble is not None:
             self.old_ensemble.eval()
             self.old_ensemble.to(self.device)    
