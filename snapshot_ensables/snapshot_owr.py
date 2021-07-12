@@ -402,6 +402,8 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         for tens in results:
             sqr_results.append(torch.square(tens))
 
+        print(f"sqr_results: {sqr_results}")
+        print(f"output: {output}")
 
         variances = sum(sqr_results)/len(results) - torch.square(output)
 
