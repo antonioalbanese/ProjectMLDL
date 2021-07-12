@@ -84,9 +84,10 @@ class owrEnsemble(iCaRL):
       logs['closed_values'][g] = closed_all_values
       predictions = []
       true_targets = []
-      for k in range(len(open_true_targets)):
-        true_targets.append(torch.cat((open_true_targets[k].to(self.DEVICE), closed_true_targets[k].to(self.DEVICE))))
-        predictions.append(torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE))))
+      # for k in range(len(open_true_targets)):
+      #   true_targets.append(torch.cat((open_true_targets[k].to(self.DEVICE), closed_true_targets[k].to(self.DEVICE))))
+      #   predictions.append(torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE))))
+      print(open_true_targets)
       print(f"Testing on both open and closed world, harmonic mean acc: {test_accuracy:.2f}")
       
       
