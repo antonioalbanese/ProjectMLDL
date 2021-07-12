@@ -22,12 +22,20 @@ from sklearn.model_selection  import ParameterGrid
 
 class owrEnsemble(iCaRL):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold, n_estimators):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold, n_estimators, confidence):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
-    
+    t_dict = {
+      '0.900' : 1.47
+      '0.950' : 1.94
+      '0.975': 2.45
+      '0.990': 3.36
+    }
+
     self.test_mode = test_mode
     self.threshold_list = p_threshold
     self.n_estimators = n_estimators
+    self.confidence = t_dict[confidence]
+
   
   def train_model(self, num_epochs):
     
@@ -160,7 +168,7 @@ class owrEnsemble(iCaRL):
       label_unknow_tensor = torch.tensor([unknowkn_class for _ in range(labels.size(0))]).to(self.DEVICE)
       for k,threshold in enumerate(threshold_list):
         stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
-        below_mask = stats < 2
+        below_mask = stats < self.confidence
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == label_unknow_tensor.data).data.item()
         preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
@@ -205,7 +213,7 @@ class owrEnsemble(iCaRL):
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
       for k,threshold in enumerate(threshold_list):
         stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
-        below_mask = stats < 2
+        below_mask = stats < self.confidence
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == labels.data).data.item()
         preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
