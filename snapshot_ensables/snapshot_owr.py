@@ -244,7 +244,7 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         self.n_outputs = self._decide_n_outputs(train_loader)
         self.estimators_ = nn.ModuleList()
 
-        estimator = self._make_estimator()
+        estimator = self._make_estimator().to(self.device)
 
         # Set the optimizer and scheduler
         optimizer = set_module.set_optimizer(
