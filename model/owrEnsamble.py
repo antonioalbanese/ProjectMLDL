@@ -108,7 +108,7 @@ class owrEnsemble(iCaRL):
 
 
   def harmonic_test(self, classes_group_idx, ensemble):
-    with torch.no_grad:
+    with torch.no_grad():
       ensemble.train(False)
       mean_accs = []
       open_test_accuracy, open_true_targets, open_predictions_list, open_all_values= self.test_openset(classes_group_idx, ensemble)
