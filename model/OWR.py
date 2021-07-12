@@ -226,3 +226,61 @@ class owrIncremental(iCaRL):
         accuracy = running_corrects / float(total)  
 
       return accuracy, all_targets, all_preds_with_unknown, only_unknown_targets, only_unknown_preds, only_unknown_values, all_values
+
+    
+###################################################################################################################################
+
+class owrCosine(owrIncremental):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold):
+    super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold)
+  
+  def train_epoch(self, classes_group_idx):
+    self.net.train()
+    if self.old_net is not None: self.old_net.train(False)
+    if self.best_net is not None: self.best_net.train(False)
+    running_loss = 0
+    running_corrects = 0
+    total = 0
+
+    for _, images, labels in self.train_dl[classes_group_idx]:
+      self.optimizer.zero_grad()
+
+      images = images.to(self.DEVICE)
+      labels = labels.to(self.DEVICE)
+
+      num_classes = self.net.fc.out_features
+      #one_hot_labels = self.onehot_encoding(labels)[:, num_classes-10: num_classes]
+      
+      output, loss = self.compute_loss(images, labels, num_classes)
+
+      running_loss += loss.item()
+      _, preds = torch.max(output.data, 1)
+      running_corrects += torch.sum(preds == labels.data).data.item()
+      total += labels.size(0)
+      
+      loss.backward()
+      self.optimizer.step()
+      
+    else:
+      epoch_loss = running_loss/len(self.train_dl[classes_group_idx])
+      epoch_acc = running_corrects/float(total)
+      
+    return epoch_loss, epoch_acc
+  
+  def compute_loss(self, images, labels, num_classes):
+      dist_criterion = nn.CosineEmbeddingLoss()
+      class_criterion = nn.CrossEntropyLoss()
+
+      if self.old_net is not None:
+        self.old_net.to(self.DEVICE)    
+        sigmoid = nn.Sigmoid()
+        old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]
+        output = self.net(images)
+        dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output, torch.ones(images.shape[0]).to(self.DEVICE))
+        class_loss = class_criterion(output, labels)
+        loss = dist_loss + class_loss
+
+      else:
+        output = self.net(images)
+        loss = class_criterion(output, labels)      
+    return output, loss
