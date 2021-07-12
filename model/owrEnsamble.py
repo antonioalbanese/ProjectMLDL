@@ -25,10 +25,10 @@ class owrEnsemble(iCaRL):
   def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold, n_estimators, confidence):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
     t_dict = {
-      '0.900' : 1.47
-      '0.950' : 1.94
-      '0.975': 2.45
-      '0.990': 3.36
+      '0.900' : 1.47,
+      '0.950' : 1.94,
+      '0.975' : 2.45,
+      '0.990' : 3.36
     }
 
     self.test_mode = test_mode
