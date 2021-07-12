@@ -395,6 +395,13 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
 
         return loss
 
+    def predict_with_variance(self, *x):
+        results = [estimator(*x) for estimator in self.estimators_]
+        output = op.average(results)
+        variances = sum(torch.square(results))/len(results) - torch.square(output)
+
+        return output, variances
+
 
 @torchensemble_model_doc(
     """Implementation on the SnapshotEnsembleRegressor.""", "seq_model"
