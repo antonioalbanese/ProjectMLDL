@@ -83,7 +83,7 @@ class owrEnsemble(iCaRL):
       logs['open_values'][g] = open_all_values
       logs['closed_values'][g] = closed_all_values
       predictions = []
-      for k in range(len(open_true_targets)):
+      for k in range(len(open_predictions)):
         predictions.append(torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE))))
       print(open_true_targets)
       print(f"Testing on both open and closed world")
