@@ -268,19 +268,19 @@ class owrCosine(owrIncremental):
     return epoch_loss, epoch_acc
   
   def compute_loss(self, images, labels, num_classes):
-      dist_criterion = nn.CosineEmbeddingLoss()
-      class_criterion = nn.CrossEntropyLoss()
+    dist_criterion = nn.CosineEmbeddingLoss()
+    class_criterion = nn.CrossEntropyLoss()
 
-      if self.old_net is not None:
-        self.old_net.to(self.DEVICE)    
-        sigmoid = nn.Sigmoid()
-        old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]
-        output = self.net(images)
-        dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output, torch.ones(images.shape[0]).to(self.DEVICE))
-        class_loss = class_criterion(output, labels)
-        loss = dist_loss + class_loss
+    if self.old_net is not None:
+      self.old_net.to(self.DEVICE)    
+      sigmoid = nn.Sigmoid()
+      old_net_output = sigmoid(self.old_net(images))[:, :num_classes-10]
+      output = self.net(images)
+      dist_loss = dist_criterion(output[:,:num_classes-10], old_net_output, torch.ones(images.shape[0]).to(self.DEVICE))
+      class_loss = class_criterion(output, labels)
+      loss = dist_loss + class_loss
 
-      else:
-        output = self.net(images)
-        loss = class_criterion(output, labels)      
+    else:
+      output = self.net(images)
+      loss = class_criterion(output, labels)      
     return output, loss
