@@ -158,6 +158,7 @@ class owrEnsemble(iCaRL):
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
       label_unknow_tensor = torch.tensor([unknowkn_class for _ in range(labels.size(0))]).to(self.DEVICE)
       print(f"pred_vars: {pred_vars}")
+      print(f"values: {values}")
       for k,threshold in enumerate(threshold_list):
         stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
         print(f"stats: {stats}")
@@ -207,6 +208,7 @@ class owrEnsemble(iCaRL):
       all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
       print(f"pred_vars: {pred_vars}")
+      print(f"values: {values}")
       for k,threshold in enumerate(threshold_list):
         stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
         print(f"stats: {stats}")
