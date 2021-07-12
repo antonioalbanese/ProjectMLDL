@@ -398,7 +398,12 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
     def predict_with_variance(self, *x):
         results = [estimator(*x) for estimator in self.estimators_]
         output = op.average(results)
-        variances = sum(torch.square(results))/len(results) - torch.square(output)
+        sqr_results = []
+        for tens in results:
+            sqr_results.append(torch.square(tens))
+
+
+        variances = sum(sqr_results)/len(results) - torch.square(output)
 
         return output, variances
 
