@@ -149,7 +149,7 @@ class owrEnsemble(iCaRL):
       label_unknow_tensor = torch.tensor([unknowkn_class for _ in range(labels.size(0))]).to(self.DEVICE)
 
       for k,threshold in enumerate(threshold_list):
-        stats = (all_values - threshold)/(all_vars/sqrt(self.n_estimators))
+        stats = (values - threshold)/(pred_vars/sqrt(self.n_estimators))
         below_mask = stats < 2
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == label_unknow_tensor.data).data.item()
@@ -190,7 +190,7 @@ class owrEnsemble(iCaRL):
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
 
       for k,threshold in enumerate(threshold_list):
-        stats = (all_values - threshold)/(all_vars/sqrt(self.n_estimators))
+        stats = (values - threshold)/(pred_vars/sqrt(self.n_estimators))
         below_mask = stats < 2
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == labels.data).data.item()
