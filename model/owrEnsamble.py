@@ -150,7 +150,7 @@ class owrEnsemble(iCaRL):
         pred_vars = variances[preds]  
         all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
         all_vars = torch.cat((all_vars.to(self.DEVICE),pred_vars.to(self.DEVICE)))
-        all_preds = torch.cat((all_preds.to(self.DEVICE),all_preds.to(self.DEVICE)))
+        all_preds = torch.cat((all_preds.to(self.DEVICE),preds.to(self.DEVICE)))
         label_unknow_tensor = torch.tensor([unknowkn_class for _ in range(labels.size(0))]).to(self.DEVICE)
         all_targets_as_unknown = torch.cat((all_targets_as_unknown.to(self.DEVICE), label_unknow_tensor.to(self.DEVICE)), dim=0) #unknown class will be the true targets for all the test set, since we aspect that the model reject all of them
         all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
@@ -199,7 +199,7 @@ class owrEnsemble(iCaRL):
       pred_vars = variances[preds]  
       all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
       all_vars = torch.cat((all_vars.to(self.DEVICE),pred_vars.to(self.DEVICE)))
-      all_preds = torch.cat((all_preds.to(self.DEVICE),all_preds.to(self.DEVICE)))
+      all_preds = torch.cat((all_preds.to(self.DEVICE),preds.to(self.DEVICE)))
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
 
     unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
