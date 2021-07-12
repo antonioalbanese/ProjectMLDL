@@ -164,7 +164,7 @@ class owrEnsemble(iCaRL):
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == label_unknow_tensor.data).data.item()
         preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
-        print(f"running_correct[{k}]: {running_correct[k]}")
+        print(f"running_corrects_list[{k}]: {running_corrects_list[k]}")
     for corr in running_corrects_list:
       accuracies.append(corr/float(total))
 
@@ -209,7 +209,7 @@ class owrEnsemble(iCaRL):
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == labels.data).data.item()
         preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
-        print(f"running_correct[{k}]: {running_correct[k]}")
+        print(f"running_corrects_list[{k}]: {running_corrects_list[k]}")
         
     for corr in running_corrects_list:
       accuracies.append(corr/float(total))
