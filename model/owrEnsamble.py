@@ -85,7 +85,7 @@ class owrEnsemble(iCaRL):
       predictions = []
       for k in range(len(open_predictions)):
         predictions.append(torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE))))
-      print(open_true_targets)
+      
       print(f"Testing on both open and closed world")
       for en,acc in enumerate(test_accuracies):
         print(f"owr harmonic mean (threshold:{self.threshold_list[en]}) = {acc}")
@@ -164,9 +164,12 @@ class owrEnsemble(iCaRL):
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == label_unknow_tensor.data).data.item()
         preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
-        print(f"running_corrects_list[{k}]: {running_corrects_list[k]}")
+        
     for corr in running_corrects_list:
       accuracies.append(corr/float(total))
+
+    print(f"running_corrects_list: {running_corrects_list}")
+    print(f"raccuracies: {accuracies}")
 
     return accuracies, all_targets, preds_with_unknown_list, all_values
 
@@ -209,10 +212,13 @@ class owrEnsemble(iCaRL):
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == labels.data).data.item()
         preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
-        print(f"running_corrects_list[{k}]: {running_corrects_list[k]}")
+        
         
     for corr in running_corrects_list:
       accuracies.append(corr/float(total))
+
+    print(f"running_corrects_list: {running_corrects_list}")
+    print(f"raccuracies: {accuracies}")
 
     return accuracies, all_targets, preds_with_unknown_list, all_values
     
