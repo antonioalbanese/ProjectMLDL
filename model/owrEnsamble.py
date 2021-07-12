@@ -157,11 +157,8 @@ class owrEnsemble(iCaRL):
       all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
       label_unknow_tensor = torch.tensor([unknowkn_class for _ in range(labels.size(0))]).to(self.DEVICE)
-      print(f"open_values:{values}")
-      print(f"open_vars:{pred_vars}")
       for k,threshold in enumerate(threshold_list):
         stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
-        print(f"open_stats:{stats}")
         below_mask = stats < 2
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == label_unknow_tensor.data).data.item()
@@ -205,11 +202,8 @@ class owrEnsemble(iCaRL):
 
       all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
-      print(f"closed_values:{values}")
-      print(f"closed_vars:{pred_vars}")
       for k,threshold in enumerate(threshold_list):
         stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
-        print(f"closed_stats:{stats}")
         below_mask = stats < 2
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == labels.data).data.item()
