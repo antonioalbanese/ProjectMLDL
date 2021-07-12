@@ -396,13 +396,12 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         return loss
 
     def predict_with_variance(self, *x):
-        results = [estimator(*x) for estimator in self.estimators_]
+        results = [estimator(*x) for estimator in self.estimators_] #[tensor(128,10), tensor(128,10),...]
         output = op.average(results)
         output = F.softmax(output, dim=1)
         sqr_results = []
         for tens in results:
-            print(tens, tens.size())
-            sqr_results.append(torch.square(F.softmax(tens)))
+            sqr_results.append(torch.square(F.softmax(tens, dim=1)))
         variances = sum(sqr_results)/len(results) - torch.square(output)
         
         return output, variances
