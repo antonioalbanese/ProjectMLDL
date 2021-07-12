@@ -116,7 +116,7 @@ class owrEnsemble(iCaRL):
       mean_acc = 1/((1/open_test_accuracy[n] + 1/closed_test_accuracy[n])/2)
       mean_accs.append(mean_acc)
 
-    return mean_accs, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions, closed_predictions, open_all_values, closed_all_values       
+    return mean_accs, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions_list, closed_predictions_list, open_all_values, closed_all_values       
 
 
 
