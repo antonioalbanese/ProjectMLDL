@@ -405,8 +405,10 @@ class SnapshotEnsembleOWRClassifier(_BaseSnapshotEnsemble, BaseClassifier):
         print(f"sqr_results: {sqr_results}")
         print(f"output: {output}")
 
+        print(f"sum(sqr_results): {sum(sqr_results)}")
+        print(f"square(output): {torch.square(output)}")
         variances = sum(sqr_results)/len(results) - torch.square(output)
-
+        print(f"variances: {variances}")
         return output, variances
 
 
