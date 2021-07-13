@@ -22,7 +22,7 @@ from sklearn.model_selection  import ParameterGrid
 
 class owrEnsemble(iCaRL):
   
-  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold, n_estimators, confidence):
+  def __init__(self, device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform, test_mode, p_threshold, n_estimators, confidence, strategy):
     super().__init__(device, net, LR, MOMENTUM, WEIGHT_DECAY, MILESTONES, GAMMA, train_dl, validation_dl, test_dl, BATCH_SIZE, train_subset, train_transform, test_transform)
     t_dict = {
       '0.6827' : 1,
@@ -36,6 +36,7 @@ class owrEnsemble(iCaRL):
     self.threshold_list = p_threshold
     self.n_estimators = n_estimators
     self.confidence = t_dict[confidence]
+    self.strategy = strategy
 
   
   def train_model(self, num_epochs):
@@ -120,7 +121,7 @@ class owrEnsemble(iCaRL):
 ################################################################
 
 
-  def harmonic_test(self, classes_group_idx, ensemble):
+  def harmonic_test(self, classes_group_idx, ensemble, pred_vars):
     with torch.no_grad():
       ensemble.train(False)
       mean_accs = []
@@ -132,7 +133,6 @@ class owrEnsemble(iCaRL):
         mean_accs.append(mean_acc)
 
     return mean_accs, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions_list, closed_predictions_list, open_all_values, closed_all_values       
-
 
 
   def test_openset(self,classes_group_idx, ensemble):
@@ -150,30 +150,36 @@ class owrEnsemble(iCaRL):
     all_values = all_values.type(torch.LongTensor)
     preds_with_unknown_list = [torch.tensor([]) for _ in range(len(threshold_list))]
 
-    for _, images, labels in self.test_dl[classes_group_idx]:
-      images = images.to(self.DEVICE)
-      labels = labels.to(self.DEVICE)
-      total += labels.size(0)
 
-      outputs, variances = ensemble.predict_with_variance(images)
+    for i in range(5):
+      for _, images, labels in self.test_dl[i]:
+        images = images.to(self.DEVICE)
+        labels = labels.to(self.DEVICE)
+        total += labels.size(0)
 
-      values, preds = torch.max(outputs.data, 1)
-      pred_vars = torch.tensor([])
-      pred_vars = pred_vars.type(torch.DoubleTensor)
-      pred_vars = pred_vars.to(self.DEVICE)
-      for en,pred in enumerate(preds):
-        pred_vars = torch.cat((pred_vars.to(self.DEVICE), torch.tensor([variances[en,pred]]).to(self.DEVICE)))
+        outputs, variances = ensemble.predict_with_variance(images)
 
-      all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
-      all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
-      label_unknow_tensor = torch.tensor([unknowkn_class for _ in range(labels.size(0))]).to(self.DEVICE)
-      for k,threshold in enumerate(threshold_list):
-        stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
-        below_mask = stats < self.confidence
-        preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
-        running_corrects_list[k] += torch.sum(preds_with_unknown == label_unknow_tensor.data).data.item()
-        preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
-        
+        values, preds = torch.max(outputs.data, 1)
+        pred_vars = torch.tensor([])
+        pred_vars = pred_vars.type(torch.DoubleTensor)
+        pred_vars = pred_vars.to(self.DEVICE)
+        for en,pred in enumerate(preds):
+          pred_vars = torch.cat((pred_vars.to(self.DEVICE), torch.tensor([variances[en,pred]]).to(self.DEVICE)))
+
+        all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
+        all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
+        label_unknow_tensor = torch.tensor([unknowkn_class for _ in range(labels.size(0))]).to(self.DEVICE)
+        for k,threshold in enumerate(threshold_list):
+          stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
+          if self.strategy == 'mean': 
+            below_mask = values < threshold
+          elif self.strategy == 'variance' or self.strategy == 'hybrid':
+            below_mask = stats < self.confidence
+          preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
+          running_corrects_list[k] += torch.sum(preds_with_unknown == label_unknow_tensor.data).data.item()
+          preds_with_unknown_list[k] = torch.cat((preds_with_unknown_list[k].to(self.DEVICE), preds_with_unknown.to(self.DEVICE)), dim=0)
+          
+
     for corr in running_corrects_list:
       accuracies.append(corr/float(total))
 
@@ -214,6 +220,10 @@ class owrEnsemble(iCaRL):
       all_targets = torch.cat((all_targets.to(self.DEVICE), labels.to(self.DEVICE)), dim=0)
       for k,threshold in enumerate(threshold_list):
         stats = (values - threshold)/(torch.sqrt(pred_vars)/sqrt(self.n_estimators))
+        if self.strategy == 'mean' or self.strategy == 'hybrid': 
+          below_mask = values < threshold
+        elif self.strategy == 'variance':
+          below_mask = stats < self.confidence
         below_mask = stats < self.confidence
         preds_with_unknown = torch.where(below_mask.to(self.DEVICE), torch.tensor(unknowkn_class).to(self.DEVICE), preds.to(self.DEVICE))
         running_corrects_list[k] += torch.sum(preds_with_unknown == labels.data).data.item()
