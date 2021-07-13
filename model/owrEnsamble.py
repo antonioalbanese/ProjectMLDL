@@ -151,7 +151,7 @@ class owrEnsemble(iCaRL):
     preds_with_unknown_list = [torch.tensor([]) for _ in range(len(threshold_list))]
 
 
-    for i in range(5):
+    for i in range(5,10):
       for _, images, labels in self.test_dl[i]:
         images = images.to(self.DEVICE)
         labels = labels.to(self.DEVICE)
