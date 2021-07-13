@@ -121,7 +121,7 @@ class owrEnsemble(iCaRL):
 ################################################################
 
 
-  def harmonic_test(self, classes_group_idx, ensemble, pred_vars):
+  def harmonic_test(self, classes_group_idx, ensemble):
     with torch.no_grad():
       ensemble.train(False)
       mean_accs = []
