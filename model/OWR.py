@@ -120,7 +120,7 @@ class owrIncremental(iCaRL):
   def harmonic_test(self, classes_group_idx):
     open_test_accuracy, open_true_targets, open_predictions, open_unknown_targets, open_unknown_preds, open_unknown_values, open_all_values = self.test_openset(classes_group_idx)
     closed_test_accuracy, closed_true_targets, closed_predictions, closed_unknown_targets, closed_unknown_preds, closed_unknown_values, closed_all_values = self.test_rejection(classes_group_idx)
-    mean_acc = 1/((1/open_test_accuracy + 1/closed_test_accuracy)/2)
+    mean_acc = 1/((1/(open_test_accuracy+0.0001) + 1/(closed_test_accuracy+0.0001))/2)
     return mean_acc, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions, closed_predictions, open_unknown_targets, closed_unknown_targets, open_unknown_preds, closed_unknown_preds, open_unknown_values, closed_unknown_values, open_all_values, closed_all_values       
 
   def test_openset(self,classes_group_idx):
@@ -156,7 +156,8 @@ class owrIncremental(iCaRL):
         values, preds = torch.max(softmax(outputs).data, 1)
         all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
         below_mask = values < threshold
-        unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+        #unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+        unknowkn_class = 100
         preds_with_unknown = torch.where(below_mask, torch.tensor(unknowkn_class).to(self.DEVICE), preds)
         only_unknown_preds_batch = preds[below_mask]
         only_unknown_targets_batch = labels[below_mask]
@@ -207,7 +208,8 @@ class owrIncremental(iCaRL):
         values, preds = torch.max(softmax(outputs).data, 1)
         all_values = torch.cat((all_values.to(self.DEVICE),values.to(self.DEVICE)))
         below_mask = values < threshold
-        unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+        #unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+        unknowkn_class = 101
         preds_with_unknown = torch.where(below_mask, torch.tensor(unknowkn_class).to(self.DEVICE), preds)
         only_unknown_preds_batch = preds[below_mask]
         only_unknown_targets_batch = labels[below_mask]
