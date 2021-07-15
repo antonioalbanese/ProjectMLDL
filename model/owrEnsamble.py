@@ -142,7 +142,7 @@ class owrEnsemble(iCaRL):
     running_corrects_list = [0 for _ in range(len(threshold_list))]
     total = 0
     accuracies = []
-    unknowkn_class = 100 #Assign  index 100 to unknown class
+    unknowkn_class = 101 #Assign  index 100 to unknown class
 
     
     all_targets = torch.tensor([])
@@ -194,8 +194,8 @@ class owrEnsemble(iCaRL):
     running_corrects_list = [0 for _ in range(len(threshold_list))]
     total = 0
     accuracies = []
-    unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
-
+    #unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+    unknowkn_class = 100
     
     all_targets = torch.tensor([])
     all_targets = all_targets.type(torch.LongTensor)
