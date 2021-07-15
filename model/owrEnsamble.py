@@ -95,7 +95,7 @@ class owrEnsemble(iCaRL):
       logs['closed_values'][g] = closed_all_values
       predictions = []
       for k in range(len(open_predictions)):
-        predictions.append(torch.cat((open_predictions[k].to(self.DEVICE), closed_predictions[k].to(self.DEVICE))))
+        predictions.append(torch.cat((closed_predictions[k].to(self.DEVICE), open_predictions[k].to(self.DEVICE))))
       
       print(f"Testing on both open and closed world")
       for en,acc in enumerate(test_accuracies):
@@ -142,7 +142,7 @@ class owrEnsemble(iCaRL):
     running_corrects_list = [0 for _ in range(len(threshold_list))]
     total = 0
     accuracies = []
-    unknowkn_class = classes_group_idx*10+10 #Assign an index to unknown class, for instance at the first iteration we have class from 0 to 9, unkown class will be 10
+    unknowkn_class = 100 #Assign  index 100 to unknown class
 
     
     all_targets = torch.tensor([])
