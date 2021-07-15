@@ -130,7 +130,7 @@ class owrEnsemble(iCaRL):
       print(f"{open_test_accuracy}")
       print(f"{closed_test_accuracy}")
       for n in range(len(open_test_accuracy)):
-        mean_acc = 1/((1/open_test_accuracy[n] + 1/closed_test_accuracy[n])/2)
+        mean_acc = 1/((1/open_test_accuracy[n]+0.0001 + 1/closed_test_accuracy[n]+0.0001)/2) #0.0001 avoid division by zero error 
         mean_accs.append(mean_acc)
 
     return mean_accs, open_test_accuracy, closed_test_accuracy, open_true_targets, closed_true_targets, open_predictions_list, closed_predictions_list, open_all_values, closed_all_values       
