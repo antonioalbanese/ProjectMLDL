@@ -299,10 +299,10 @@ class SVM_Classifier(iCaRL):
     
   def fit_train_data(self, classes_group_idx, train_set):
     
-    exemplars = Exemplar(self.exemplar_set, self.train_transform)
-    tmp_dl = DataLoader(exemplars,
-                        batch_size=self.BATCH_SIZE)
-    X_train, y_train = self.separate_data(tmp_dl)
+    #exemplars = Exemplar(self.exemplar_set, self.train_transform)
+    #tmp_dl = DataLoader(exemplars,
+                        #batch_size=self.BATCH_SIZE)
+    X_train, y_train = self.separate_data(self.train_dl[classes_group_idx])
     X_test, y_test = self.separate_data(self.validation_dl[classes_group_idx])
     
     self.clf = SVC()   
