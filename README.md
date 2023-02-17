@@ -11,3 +11,5 @@ The repository is organized in this way:
 - other: support files and libraries
 
 Contributors to this project are: Albanese Antonio, Maggio Leonardo and Nedescu Ionut Cosmin
+
+hjd
